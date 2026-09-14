@@ -12,6 +12,7 @@ Mobile-first, single-page map UI (vanilla HTML/CSS/JS + [Leaflet](https://leafle
 - **Live bin data** — renders markers from `GET /api/bins`, typed icons (glass, paper, plastic, metal, electronics, mixed, generic) with a legend.
 - **Nearest bin** — `GET /api/bins/nearest?lat=&lng=` drives the walking distance / ETA and the dashed route line.
 - **Selectable bins** — click (or keyboard-select) **any** bin to see its distance/ETA in the status card, redraw the route, update directions, and highlight the marker. Popups also show distance from your location.
+- **Register a bin** — an **Add Bin** button opens a dialog to create a bin (name, optional address, optional type) with its location picked by tapping the map; submits via `POST /api/bins` and drops the new marker.
 - **Current location field** — shows your coordinates, upgraded to a human-readable address via OSM Nominatim reverse geocoding.
 - **Collapsible status card** — a clear minimize/expand toggle so the panel doesn't cover the map on mobile.
 - **Manual location** — **Set Location on Map** lets you tap any point to use it instead of GPS.

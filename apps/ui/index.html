@@ -31,6 +31,11 @@
     <main class="map-stage">
       <div id="map" class="map-canvas" role="application" aria-label="Recycling bin locator map"></div>
 
+      <button id="btn-add-bin" class="fab-add-bin" type="button" title="Register a new recycling bin">
+        <span class="fab-add-bin__icon" aria-hidden="true">➕</span>
+        <span>Add Bin</span>
+      </button>
+
       <section id="status-card" class="status-card is-loading" aria-live="polite">
         <div class="card-header">
           <div class="card-header__summary">
@@ -97,9 +102,60 @@
         <p id="error-text">Something went wrong while loading nearby bins.</p>
         <button id="btn-banner-retry" class="btn btn-secondary" type="button">Retry</button>
       </aside>
+
+      <div id="add-bin-hint" class="add-bin-hint hidden" role="status" aria-live="polite">
+        Tap the map to place your new bin.
+      </div>
     </main>
   </article>
 </div>
+
+<dialog id="add-bin-dialog" class="add-bin-dialog" aria-labelledby="add-bin-title">
+  <form id="add-bin-form" class="add-bin-form">
+    <div class="add-bin-form__head">
+      <h2 id="add-bin-title">Register a recycling bin</h2>
+      <button id="btn-close-add-bin" class="dialog-close" type="button" aria-label="Close dialog">✕</button>
+    </div>
+
+    <label class="field">
+      <span>Name <em>*</em></span>
+      <input id="bin-name-input" name="name" type="text" maxlength="255" required autocomplete="off" placeholder="e.g. Riverside Glass Bank" />
+    </label>
+
+    <label class="field">
+      <span>Address <small>(optional)</small></span>
+      <input id="bin-address-input" name="address" type="text" autocomplete="off" placeholder="e.g. 5th Ave & E 59th St" />
+    </label>
+
+    <label class="field">
+      <span>Type <small>(optional)</small></span>
+      <select id="bin-type-input" name="type">
+        <option value="">Unknown</option>
+        <option value="glass">Glass</option>
+        <option value="paper">Paper</option>
+        <option value="plastic">Plastic</option>
+        <option value="metal">Metal</option>
+        <option value="electronics">Electronics</option>
+        <option value="mixed">Mixed</option>
+      </select>
+    </label>
+
+    <div class="field location-picker">
+      <span>Location <em>*</em></span>
+      <div class="location-picker__row">
+        <strong id="bin-location-text">Not set</strong>
+        <button id="btn-pick-bin-location" class="btn btn-secondary" type="button">Pick on map</button>
+      </div>
+    </div>
+
+    <p id="add-bin-error" class="add-bin-error hidden" role="alert"></p>
+
+    <div class="dialog-actions">
+      <button id="btn-cancel-add-bin" class="btn btn-secondary" type="button">Cancel</button>
+      <button id="btn-submit-bin" class="btn btn-primary" type="submit">Save bin</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
   window.ECODROP_CONFIG = {

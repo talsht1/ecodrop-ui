@@ -80,7 +80,20 @@ const elements = {
   retryButton: document.getElementById("btn-retry"),
   bannerRetryButton: document.getElementById("btn-banner-retry"),
   errorBanner: document.getElementById("error-banner"),
-  errorText: document.getElementById("error-text")
+  errorText: document.getElementById("error-text"),
+  addBinButton: document.getElementById("btn-add-bin"),
+  addBinHint: document.getElementById("add-bin-hint"),
+  addBinDialog: document.getElementById("add-bin-dialog"),
+  addBinForm: document.getElementById("add-bin-form"),
+  binNameInput: document.getElementById("bin-name-input"),
+  binAddressInput: document.getElementById("bin-address-input"),
+  binTypeInput: document.getElementById("bin-type-input"),
+  binLocationText: document.getElementById("bin-location-text"),
+  pickBinLocationButton: document.getElementById("btn-pick-bin-location"),
+  closeAddBinButton: document.getElementById("btn-close-add-bin"),
+  cancelAddBinButton: document.getElementById("btn-cancel-add-bin"),
+  submitBinButton: document.getElementById("btn-submit-bin"),
+  addBinError: document.getElementById("add-bin-error")
 };
 
 const map = L.map("map", { zoomControl: false }).setView(MANHATTAN_CENTER, MAP_DEFAULT_ZOOM);
@@ -116,6 +129,9 @@ let currentUserCoordinates = null;
 let currentNearestCoordinates = null;
 let selectedBinId = null;
 let manualLocationMode = false;
+let addBinPickMode = false;
+let addBinCoords = null;
+let addBinPreviewMarker = null;
 
 function setCardState(state) {
   elements.statusCard.classList.remove("is-loading", "is-success", "is-error");
@@ -456,6 +472,32 @@ async function fetchNearestBin(lat, lng) {
   return { nearestBin, distanceMeters };
 }
 
+async function createBin(binInput) {
+  const response = await fetch(buildApiUrl("/api/bins"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify(binInput)
+  });
+
+  if (!response.ok) {
+    let details = `HTTP ${response.status}`;
+    try {
+      const payload = await response.json();
+      if (typeof payload?.error === "string" && payload.error.trim()) {
+        details = payload.error.trim();
+      }
+    } catch {
+      // keep fallback details
+    }
+    throw new Error(details);
+  }
+
+  return parseBin(await response.json());
+}
+
 function upsertUserMarker(lat, lng) {
   if (!userMarker) {
     userMarker = L.marker([lat, lng], {
@@ -485,6 +527,44 @@ function upsertRouteLine(userCoords, nearestCoords) {
   }).addTo(map);
 }
 
+function createBinMarkerInstance(bin) {
+  const title = `${bin.name} (${getTypeMeta(bin.type).label})`;
+  const marker = L.marker([bin.latitude, bin.longitude], {
+    icon: createBinIcon(bin.type),
+    keyboard: true,
+    title,
+    alt: title,
+    riseOnHover: true
+  }).bindPopup(() => createPopupContent(bin));
+
+  marker.__bin = bin;
+  const onSelect = () => selectBin(bin);
+  marker.__onSelect = onSelect;
+  marker.on("click", onSelect);
+
+  marker.on("keypress", (event) => {
+    const key = event?.originalEvent?.key;
+    if (key === "Enter" || key === " ") {
+      selectBin(bin);
+      marker.openPopup();
+    }
+  });
+
+  return marker;
+}
+
+function upsertBinMarker(bin) {
+  const existing = binMarkersById.get(bin.id);
+  if (existing) {
+    binsLayer.removeLayer(existing);
+    binMarkersById.delete(bin.id);
+  }
+  const marker = createBinMarkerInstance(bin);
+  binsLayer.addLayer(marker);
+  binMarkersById.set(bin.id, marker);
+  return marker;
+}
+
 function renderBinMarkers(bins) {
   const seenIds = new Set();
 
@@ -509,26 +589,7 @@ function renderBinMarkers(bins) {
       return;
     }
 
-    const marker = L.marker(coords, {
-      icon: createBinIcon(bin.type),
-      keyboard: true,
-      title,
-      alt: title,
-      riseOnHover: true
-    }).bindPopup(popupFn);
-
-    marker.__bin = bin;
-    marker.__onSelect = onSelect;
-    marker.on("click", onSelect);
-
-    marker.on("keypress", (event) => {
-      const key = event?.originalEvent?.key;
-      if (key === "Enter" || key === " ") {
-        selectBin(bin);
-        marker.openPopup();
-      }
-    });
-
+    const marker = createBinMarkerInstance(bin);
     binsLayer.addLayer(marker);
     binMarkersById.set(bin.id, marker);
   });
@@ -639,6 +700,140 @@ async function refreshMapData(options = {}) {
   }
 }
 
+function setAddBinPickMode(enabled) {
+  addBinPickMode = enabled;
+  map.getContainer().classList.toggle("pick-location", enabled);
+  elements.addBinHint.classList.toggle("hidden", !enabled);
+}
+
+function updateAddBinLocationLabel() {
+  elements.binLocationText.textContent = addBinCoords
+    ? formatCoords(addBinCoords)
+    : "Not set";
+}
+
+function showAddBinError(message) {
+  elements.addBinError.textContent = message;
+  elements.addBinError.classList.remove("hidden");
+}
+
+function clearAddBinError() {
+  elements.addBinError.textContent = "";
+  elements.addBinError.classList.add("hidden");
+}
+
+function openAddBinDialog() {
+  clearAddBinError();
+  if (typeof elements.addBinDialog.showModal === "function") {
+    if (!elements.addBinDialog.open) {
+      elements.addBinDialog.showModal();
+    }
+  } else {
+    elements.addBinDialog.setAttribute("open", "");
+  }
+}
+
+function closeAddBinDialog() {
+  if (typeof elements.addBinDialog.close === "function") {
+    if (elements.addBinDialog.open) {
+      elements.addBinDialog.close();
+    }
+  } else {
+    elements.addBinDialog.removeAttribute("open");
+  }
+}
+
+function resetAddBinForm() {
+  elements.addBinForm.reset();
+  addBinCoords = null;
+  if (addBinPreviewMarker) {
+    addBinPreviewMarker.remove();
+    addBinPreviewMarker = null;
+  }
+  updateAddBinLocationLabel();
+  clearAddBinError();
+}
+
+function beginAddBinLocationPick() {
+  closeAddBinDialog();
+  setManualLocationMode(false);
+  setAddBinPickMode(true);
+}
+
+function handleAddBinMapClick(latlng) {
+  addBinCoords = [latlng.lat, latlng.lng];
+  if (addBinPreviewMarker) {
+    addBinPreviewMarker.setLatLng(addBinCoords);
+  } else {
+    addBinPreviewMarker = L.marker(addBinCoords, {
+      icon: createBinIcon(elements.binTypeInput.value || null),
+      title: "New bin location",
+      alt: "New bin location"
+    }).addTo(map);
+  }
+  setAddBinPickMode(false);
+  updateAddBinLocationLabel();
+  openAddBinDialog();
+}
+
+async function submitNewBin(event) {
+  event.preventDefault();
+  clearAddBinError();
+
+  const name = elements.binNameInput.value.trim();
+  if (!name) {
+    showAddBinError("Please enter a bin name.");
+    elements.binNameInput.focus();
+    return;
+  }
+  if (!addBinCoords) {
+    showAddBinError("Please pick the bin location on the map.");
+    return;
+  }
+
+  const payload = {
+    name,
+    latitude: addBinCoords[0],
+    longitude: addBinCoords[1]
+  };
+  const address = elements.binAddressInput.value.trim();
+  if (address) {
+    payload.address = address;
+  }
+  const type = elements.binTypeInput.value;
+  if (type) {
+    payload.type = type;
+  }
+
+  elements.submitBinButton.disabled = true;
+  elements.submitBinButton.textContent = "Saving…";
+
+  try {
+    const created = await createBin(payload);
+    upsertBinMarker(created);
+    if (addBinPreviewMarker) {
+      addBinPreviewMarker.remove();
+      addBinPreviewMarker = null;
+    }
+    closeAddBinDialog();
+    resetAddBinForm();
+    map.setView([created.latitude, created.longitude], USER_FOCUS_ZOOM, { animate: true });
+    if (currentUserCoordinates) {
+      selectBin(created);
+    } else {
+      setCardState("success");
+      elements.stateLabel.textContent = "New bin registered";
+      elements.binName.textContent = created.name;
+    }
+  } catch (error) {
+    const details = error instanceof Error ? error.message : "Failed to create bin.";
+    showAddBinError(details);
+  } finally {
+    elements.submitBinButton.disabled = false;
+    elements.submitBinButton.textContent = "Save bin";
+  }
+}
+
 function setupShell() {
   elements.appName.textContent = appConfig.appName;
   elements.appVersion.textContent = `v${appConfig.version}`;
@@ -646,6 +841,10 @@ function setupShell() {
   setTimeout(() => map.invalidateSize(), 60);
   window.addEventListener("resize", () => map.invalidateSize());
   map.on("click", async (event) => {
+    if (addBinPickMode) {
+      handleAddBinMapClick(event.latlng);
+      return;
+    }
     if (!manualLocationMode) {
       return;
     }
@@ -660,6 +859,23 @@ function setupShell() {
 
   elements.minimizeButton.addEventListener("click", () => {
     setCardCollapsed(!elements.statusCard.classList.contains("is-collapsed"));
+  });
+
+  elements.addBinButton.addEventListener("click", () => {
+    resetAddBinForm();
+    openAddBinDialog();
+  });
+  elements.pickBinLocationButton.addEventListener("click", beginAddBinLocationPick);
+  elements.closeAddBinButton.addEventListener("click", closeAddBinDialog);
+  elements.cancelAddBinButton.addEventListener("click", () => {
+    closeAddBinDialog();
+    resetAddBinForm();
+  });
+  elements.addBinForm.addEventListener("submit", submitNewBin);
+  elements.binTypeInput.addEventListener("change", () => {
+    if (addBinPreviewMarker) {
+      addBinPreviewMarker.setIcon(createBinIcon(elements.binTypeInput.value || null));
+    }
   });
 }
 
