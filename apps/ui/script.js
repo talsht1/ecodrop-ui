@@ -29,6 +29,9 @@ const elements = {
   appVersion: document.getElementById("app-version"),
   footerCopyright: document.getElementById("footer-copyright"),
   statusCard: document.getElementById("status-card"),
+  cardBody: document.getElementById("card-body"),
+  minimizeButton: document.getElementById("btn-minimize"),
+  userLocationText: document.getElementById("user-location-text"),
   stateLabel: document.getElementById("state-label"),
   binName: document.getElementById("bin-name"),
   distanceText: document.getElementById("distance-text"),
@@ -100,8 +103,61 @@ function setLoadingState() {
   elements.binName.textContent = "Searching nearby bins";
   elements.distanceText.textContent = "-";
   elements.etaText.textContent = "-";
+  elements.userLocationText.textContent = "Locating…";
   hideErrorBanner();
   resetDirectionsButton();
+}
+
+function formatCoords(coords) {
+  return `${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}`;
+}
+
+async function reverseGeocode(coords) {
+  const url = new URL("https://nominatim.openstreetmap.org/reverse");
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("lat", String(coords[0]));
+  url.searchParams.set("lon", String(coords[1]));
+  url.searchParams.set("zoom", "18");
+
+  const response = await fetch(url.toString(), {
+    headers: { Accept: "application/json" }
+  });
+  if (!response.ok) {
+    throw new Error(`Reverse geocode failed with HTTP ${response.status}.`);
+  }
+  const payload = await response.json();
+  return typeof payload?.display_name === "string" ? payload.display_name : "";
+}
+
+async function updateUserLocation(coords) {
+  const coordsLabel = formatCoords(coords);
+  elements.userLocationText.textContent = coordsLabel;
+
+  try {
+    const address = await reverseGeocode(coords);
+    const stillCurrent =
+      currentUserCoordinates &&
+      currentUserCoordinates[0] === coords[0] &&
+      currentUserCoordinates[1] === coords[1];
+    if (address && stillCurrent) {
+      elements.userLocationText.textContent = address;
+    }
+  } catch {
+    // keep coordinate label on failure
+  }
+}
+
+function setCardCollapsed(collapsed) {
+  elements.statusCard.classList.toggle("is-collapsed", collapsed);
+  elements.minimizeButton.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  elements.minimizeButton.setAttribute(
+    "title",
+    collapsed ? "Expand panel" : "Minimize panel"
+  );
+  const srLabel = elements.minimizeButton.querySelector(".sr-only");
+  if (srLabel) {
+    srLabel.textContent = collapsed ? "Expand panel" : "Minimize panel";
+  }
 }
 
 function setManualLocationMode(enabled) {
@@ -434,6 +490,7 @@ async function refreshMapData(options = {}) {
     : await resolveLocation();
   currentUserCoordinates = location.coords;
   upsertUserMarker(location.coords[0], location.coords[1]);
+  updateUserLocation(location.coords);
 
   try {
     const bins = await fetchBins();
@@ -483,6 +540,10 @@ function setupShell() {
   });
   elements.retryButton.addEventListener("click", refreshMapData);
   elements.bannerRetryButton.addEventListener("click", refreshMapData);
+
+  elements.minimizeButton.addEventListener("click", () => {
+    setCardCollapsed(!elements.statusCard.classList.contains("is-collapsed"));
+  });
 }
 
 (async () => {

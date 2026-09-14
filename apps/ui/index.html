@@ -32,15 +32,36 @@
       <div id="map" class="map-canvas" role="application" aria-label="Recycling bin locator map"></div>
 
       <section id="status-card" class="status-card is-loading" aria-live="polite">
-        <div id="loading-row" class="loading-row">
-          <span class="loader-dot"></span>
-          <p>Detecting your location &amp; finding the nearest bin...</p>
+        <div class="card-header">
+          <div class="card-header__summary">
+            <p id="state-label" class="state-label">Preparing map data</p>
+            <h2 id="bin-name" class="bin-name">Searching nearby bins</h2>
+          </div>
+          <button
+            id="btn-minimize"
+            class="card-toggle"
+            type="button"
+            aria-expanded="true"
+            aria-controls="card-body"
+            title="Minimize panel"
+          >
+            <span class="card-toggle__chevron" aria-hidden="true">▾</span>
+            <span class="sr-only">Minimize panel</span>
+          </button>
         </div>
 
-        <p id="state-label" class="state-label">Preparing map data</p>
-        <h2 id="bin-name" class="bin-name">Searching nearby bins</h2>
+        <div id="card-body" class="card-body">
+          <div id="loading-row" class="loading-row">
+            <span class="loader-dot"></span>
+            <p>Detecting your location &amp; finding the nearest bin...</p>
+          </div>
 
-        <div class="metrics">
+          <div class="location-field">
+            <span class="location-field__label">📍 Your location</span>
+            <strong id="user-location-text">Locating…</strong>
+          </div>
+
+          <div class="metrics">
           <div class="metric-item">
             <span>Walking distance</span>
             <strong id="distance-text">-</strong>
@@ -68,6 +89,7 @@
           <a id="btn-directions" class="btn btn-primary disabled" href="#" target="_blank" rel="noreferrer">Get Directions</a>
           <button id="btn-manual-location" class="btn btn-secondary" type="button" aria-pressed="false">Set Location on Map</button>
           <button id="btn-retry" class="btn btn-secondary" type="button">Retry</button>
+        </div>
         </div>
       </section>
 

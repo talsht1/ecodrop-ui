@@ -126,6 +126,102 @@ body {
   border-color: #fecaca;
 }
 
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-header__summary {
+  min-width: 0;
+  flex: 1;
+}
+
+.card-toggle {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(46, 125, 50, 0.28);
+  background: var(--mint);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-toggle:hover {
+  background: #d7efd9;
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.22);
+}
+
+.card-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.card-toggle__chevron {
+  font-size: 1.15rem;
+  line-height: 1;
+  transition: transform 0.25s ease;
+}
+
+.status-card.is-collapsed .card-toggle__chevron {
+  transform: rotate(180deg);
+}
+
+.status-card.is-collapsed {
+  max-height: none;
+}
+
+.status-card.is-collapsed .card-body {
+  display: none;
+}
+
+.status-card.is-collapsed .bin-name {
+  margin-bottom: 0;
+}
+
+.location-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(46, 125, 50, 0.08);
+  border: 1px solid rgba(46, 125, 50, 0.16);
+}
+
+.location-field__label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #48615b;
+  font-weight: 700;
+}
+
+.location-field strong {
+  font-size: 0.9rem;
+  color: #10283f;
+  word-break: break-word;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .loading-row {
   display: flex;
   align-items: center;
