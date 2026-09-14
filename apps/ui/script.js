@@ -493,14 +493,16 @@ function renderBinMarkers(bins) {
   });
 }
 
-function fitBounds(userCoords, bins, nearestCoords) {
-  const allPoints = bins.map((bin) => [bin.latitude, bin.longitude]);
-  allPoints.push(userCoords);
+const USER_FOCUS_ZOOM = 16;
+
+function focusOnUser(userCoords, nearestCoords) {
   if (nearestCoords) {
-    allPoints.push(nearestCoords);
+    const bounds = L.latLngBounds([userCoords, nearestCoords]);
+    map.fitBounds(bounds, { padding: [70, 70], maxZoom: USER_FOCUS_ZOOM });
+    map.panTo(userCoords, { animate: true });
+    return;
   }
-  const bounds = L.latLngBounds(allPoints);
-  map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
+  map.setView(userCoords, USER_FOCUS_ZOOM, { animate: true });
 }
 
 function resolveLocation() {
@@ -564,7 +566,7 @@ async function refreshMapData(options = {}) {
       if (location.fallback) {
         showErrorBanner(`${location.reason} Showing Manhattan center.`);
       }
-      map.setView(location.coords, 14);
+      map.setView(location.coords, USER_FOCUS_ZOOM, { animate: true });
       return;
     }
 
@@ -578,7 +580,7 @@ async function refreshMapData(options = {}) {
       showErrorBanner(`${location.reason} Showing nearest Manhattan bin.`);
     }
 
-    fitBounds(location.coords, bins, currentNearestCoordinates);
+    focusOnUser(location.coords, currentNearestCoordinates);
   } catch (error) {
     const details = error instanceof Error ? error.message : "Unexpected API error.";
     setErrorState("Failed to load recycling bins.", details);
