@@ -1,3 +1,7 @@
 name = "ecodrop-ui"
 pages_build_output_dir = "apps/ui"
 compatibility_date = "2026-09-14"
+
+[vars]
+BACKEND_BASE_URL = "https://ecodrop-api-l2wd.onrender.com"
+BACKEND_NEAREST_BIN_PATH = "/api/bins/nearest"
