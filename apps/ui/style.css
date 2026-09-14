@@ -464,6 +464,14 @@ body {
 .type-mixed { background: #2e7d32; }
 .type-generic { background: #546e7a; }
 
+.leaflet-marker-icon.is-selected {
+  z-index: 1000 !important;
+}
+
+.leaflet-marker-icon.is-selected .bin-marker-icon {
+  box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.55), 0 8px 16px rgba(15, 23, 42, 0.35);
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: 12px;
 }
@@ -482,6 +490,12 @@ body {
   margin: 0;
   font-size: 0.82rem;
   color: #334155;
+}
+
+.popup-content .popup-distance {
+  margin-top: 4px;
+  font-weight: 700;
+  color: #2e7d32;
 }
 
 @keyframes pulse-ring {

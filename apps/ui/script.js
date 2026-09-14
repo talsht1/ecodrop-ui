@@ -66,6 +66,7 @@ let userMarker;
 let routeLine;
 let currentUserCoordinates = null;
 let currentNearestCoordinates = null;
+let selectedBinId = null;
 let manualLocationMode = false;
 
 function setCardState(state) {
@@ -206,6 +207,36 @@ function setNearestState(binName, distanceMeters, fallback, manual) {
   elements.etaText.textContent = `${Math.max(1, Math.ceil(distanceMeters / WALKING_METERS_PER_MINUTE))} min walk`;
 }
 
+function highlightSelectedMarker(binId) {
+  selectedBinId = binId;
+  binMarkersById.forEach((marker, id) => {
+    const el = marker.getElement();
+    if (el) {
+      el.classList.toggle("is-selected", id === binId);
+    }
+  });
+}
+
+function selectBin(bin) {
+  if (!currentUserCoordinates) {
+    return;
+  }
+  const binCoords = [bin.latitude, bin.longitude];
+  const meters = distanceMeters(currentUserCoordinates, binCoords);
+
+  currentNearestCoordinates = binCoords;
+  upsertRouteLine(currentUserCoordinates, binCoords);
+  setDirectionsLink(currentUserCoordinates, binCoords);
+
+  setCardState("success");
+  elements.stateLabel.textContent = "Selected recycling bin";
+  elements.binName.textContent = bin.name;
+  elements.distanceText.textContent = `${Math.round(meters)} m`;
+  elements.etaText.textContent = `${Math.max(1, Math.ceil(meters / WALKING_METERS_PER_MINUTE))} min walk`;
+  hideErrorBanner();
+  highlightSelectedMarker(bin.id);
+}
+
 function normalizeBaseUrl(baseUrl) {
   return baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
 }
@@ -235,6 +266,19 @@ function createBinIcon(rawType) {
   });
 }
 
+function distanceMeters(from, to) {
+  const R = 6371000;
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(to[0] - from[0]);
+  const dLng = toRad(to[1] - from[1]);
+  const lat1 = toRad(from[0]);
+  const lat2 = toRad(to[0]);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 function createPopupContent(bin) {
   const container = document.createElement("div");
   container.className = "popup-content";
@@ -250,6 +294,15 @@ function createPopupContent(bin) {
   const addressLine = document.createElement("p");
   addressLine.textContent = `Address: ${bin.address && bin.address.trim() ? bin.address : "Address unavailable"}`;
   container.appendChild(addressLine);
+
+  if (currentUserCoordinates) {
+    const meters = distanceMeters(currentUserCoordinates, [bin.latitude, bin.longitude]);
+    const walkMinutes = Math.max(1, Math.ceil(meters / WALKING_METERS_PER_MINUTE));
+    const distanceLine = document.createElement("p");
+    distanceLine.className = "popup-distance";
+    distanceLine.textContent = `Distance: ${Math.round(meters)} m · ${walkMinutes} min walk`;
+    container.appendChild(distanceLine);
+  }
 
   return container;
 }
@@ -388,7 +441,8 @@ function renderBinMarkers(bins) {
     seenIds.add(bin.id);
     const coords = [bin.latitude, bin.longitude];
     const title = `${bin.name} (${getTypeMeta(bin.type).label})`;
-    const popupContent = createPopupContent(bin);
+    const popupFn = () => createPopupContent(bin);
+    const onSelect = () => selectBin(bin);
 
     const existing = binMarkersById.get(bin.id);
     if (existing) {
@@ -396,7 +450,11 @@ function renderBinMarkers(bins) {
       existing.setIcon(createBinIcon(bin.type));
       existing.options.title = title;
       existing.options.alt = title;
-      existing.bindPopup(popupContent);
+      existing.bindPopup(popupFn);
+      existing.off("click", existing.__onSelect);
+      existing.__onSelect = onSelect;
+      existing.on("click", onSelect);
+      existing.__bin = bin;
       return;
     }
 
@@ -406,11 +464,16 @@ function renderBinMarkers(bins) {
       title,
       alt: title,
       riseOnHover: true
-    }).bindPopup(popupContent);
+    }).bindPopup(popupFn);
+
+    marker.__bin = bin;
+    marker.__onSelect = onSelect;
+    marker.on("click", onSelect);
 
     marker.on("keypress", (event) => {
       const key = event?.originalEvent?.key;
       if (key === "Enter" || key === " ") {
+        selectBin(bin);
         marker.openPopup();
       }
     });
