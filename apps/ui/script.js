@@ -556,6 +556,7 @@ async function refreshMapData(options = {}) {
   currentUserCoordinates = location.coords;
   upsertUserMarker(location.coords[0], location.coords[1]);
   updateUserLocation(location.coords);
+  map.setView(location.coords, USER_FOCUS_ZOOM, { animate: true });
 
   try {
     const bins = await fetchBins();
