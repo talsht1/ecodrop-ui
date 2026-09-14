@@ -1,4 +1,5 @@
 name: Deploy UI to Cloudflare Pages
+# Triggers deployment of static assets and Pages Functions.
 
 on:
   push:
