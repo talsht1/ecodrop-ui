@@ -1,0 +1,9 @@
+services:
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecodrop-ui
+    ports:
+      - "8080:80"
+    restart: unless-stopped

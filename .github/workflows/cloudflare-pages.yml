@@ -1,0 +1,29 @@
+name: Deploy UI to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/ui/**"
+      - "wrangler.toml"
+      - ".github/workflows/cloudflare-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/ui --project-name ecodrop-ui --functions apps/ui/functions
