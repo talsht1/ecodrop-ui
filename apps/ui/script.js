@@ -21,7 +21,46 @@ const appConfig = {
   appName: window.ECODROP_CONFIG?.appName ?? "EcoDrop Locator",
   version: window.ECODROP_CONFIG?.version ?? "1.0.0",
   companyName: window.ECODROP_CONFIG?.companyName ?? "EcoDrop",
-  backendBaseUrl: window.ECODROP_CONFIG?.backendBaseUrl ?? "http://localhost:3000"
+  backendBaseUrl: window.ECODROP_CONFIG?.backendBaseUrl ?? "http://localhost:3000",
+  mapStyle: window.ECODROP_CONFIG?.mapStyle ?? "osm"
+};
+
+const MAP_STYLES = {
+  osm: {
+    label: "OpenStreetMap Standard",
+    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    maxZoom: 20,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  },
+  positron: {
+    label: "CartoDB Positron (light)",
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    maxZoom: 20,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  },
+  dark: {
+    label: "CartoDB Dark Matter",
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    maxZoom: 20,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  },
+  voyager: {
+    label: "CartoDB Voyager",
+    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    maxZoom: 20,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  },
+  topo: {
+    label: "OpenTopoMap",
+    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    maxZoom: 17,
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, SRTM | &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)'
+  }
 };
 
 const elements = {
@@ -47,11 +86,20 @@ const elements = {
 const map = L.map("map", { zoomControl: false }).setView(MANHATTAN_CENTER, MAP_DEFAULT_ZOOM);
 L.control.zoom({ position: "bottomright" }).addTo(map);
 
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 20,
-  attribution:
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
+let tileLayer = null;
+
+function applyMapStyle(styleKey) {
+  const style = MAP_STYLES[styleKey] ?? MAP_STYLES.osm;
+  if (tileLayer) {
+    tileLayer.remove();
+  }
+  tileLayer = L.tileLayer(style.url, {
+    maxZoom: style.maxZoom,
+    attribution: style.attribution
+  }).addTo(map);
+}
+
+applyMapStyle(appConfig.mapStyle);
 
 const userIcon = L.divIcon({
   className: "",
@@ -345,6 +393,9 @@ async function loadRuntimeConfig() {
     if (typeof payload.backendBaseUrl === "string" && payload.backendBaseUrl) {
       appConfig.backendBaseUrl = payload.backendBaseUrl;
     }
+    if (typeof payload.mapStyle === "string" && MAP_STYLES[payload.mapStyle]) {
+      appConfig.mapStyle = payload.mapStyle;
+    }
   } catch {
     // keep local defaults
   }
@@ -614,6 +665,7 @@ function setupShell() {
 
 (async () => {
   await loadRuntimeConfig();
+  applyMapStyle(appConfig.mapStyle);
   setupShell();
   refreshMapData();
 })();

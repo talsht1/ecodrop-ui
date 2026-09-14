@@ -3,7 +3,8 @@ import {
   publicConfig,
   resolveBackendApiUrl,
   resolveBackendBaseUrl,
-  resolveNearestBinPath
+  resolveNearestBinPath,
+  resolveMapStyle
 } from "./_shared/app-config.js";
 
 export async function onRequest(context) {
@@ -11,6 +12,7 @@ export async function onRequest(context) {
     ...publicConfig,
     backendBaseUrl: resolveBackendBaseUrl(context.env),
     nearestBinPath: resolveNearestBinPath(context.env),
-    backendApiUrl: resolveBackendApiUrl(context.env)
+    backendApiUrl: resolveBackendApiUrl(context.env),
+    mapStyle: resolveMapStyle(context.env)
   });
 }
