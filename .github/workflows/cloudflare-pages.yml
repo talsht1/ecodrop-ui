@@ -1,5 +1,5 @@
 name: Deploy UI to Cloudflare Pages
-# Triggers deployment of static assets and Pages Functions.
+# Triggers deployment of static assets and Pages Functions. (retry marker)
 
 on:
   push:
