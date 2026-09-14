@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <!-- trigger: ui deploy pipeline v5 (functions at repo root) -->
+  <!-- trigger: ui deploy pipeline v6 (i18n en/he) -->
   <title>EcoDrop | Recycling Bin Locator</title>
   <link
     rel="stylesheet"
@@ -18,29 +18,33 @@
     <header class="app-header">
       <div class="brand-chip" aria-hidden="true">♻</div>
       <div class="brand-copy">
-        <p class="brand-eyebrow">Eco Navigation</p>
+        <p class="brand-eyebrow" data-i18n="brand.eyebrow">Eco Navigation</p>
         <h1 id="app-name">EcoDrop Locator</h1>
         <p id="app-version">v1.3.1</p>
       </div>
       <p class="header-copy">
         <span id="footer-copyright"></span>
-        <span>All rights reserved.</span>
+        <span data-i18n="header.rights">All rights reserved.</span>
       </p>
+      <button id="btn-lang" class="lang-toggle" type="button" aria-label="Switch language">
+        <span class="lang-toggle__icon" aria-hidden="true">🌐</span>
+        <span id="lang-toggle-text">עברית</span>
+      </button>
     </header>
 
     <main class="map-stage">
       <div id="map" class="map-canvas" role="application" aria-label="Recycling bin locator map"></div>
 
-      <button id="btn-add-bin" class="fab-add-bin" type="button" title="Register a new recycling bin">
+      <button id="btn-add-bin" class="fab-add-bin" type="button" data-i18n-title="fab.addBinTitle" title="Register a new recycling bin">
         <span class="fab-add-bin__icon" aria-hidden="true">➕</span>
-        <span>Add Bin</span>
+        <span data-i18n="fab.addBin">Add Bin</span>
       </button>
 
       <section id="status-card" class="status-card is-loading" aria-live="polite">
         <div class="card-header">
           <div class="card-header__summary">
-            <p id="state-label" class="state-label">Preparing map data</p>
-            <h2 id="bin-name" class="bin-name">Searching nearby bins</h2>
+            <p id="state-label" class="state-label" data-i18n="state.preparing">Preparing map data</p>
+            <h2 id="bin-name" class="bin-name" data-i18n="card.searching">Searching nearby bins</h2>
           </div>
           <button
             id="btn-minimize"
@@ -48,62 +52,63 @@
             type="button"
             aria-expanded="true"
             aria-controls="card-body"
+            data-i18n-title="panel.minimize"
             title="Minimize panel"
           >
             <span class="card-toggle__chevron" aria-hidden="true">▾</span>
-            <span class="sr-only">Minimize panel</span>
+            <span class="sr-only" data-i18n="panel.minimize">Minimize panel</span>
           </button>
         </div>
 
         <div id="card-body" class="card-body">
           <div id="loading-row" class="loading-row">
             <span class="loader-dot"></span>
-            <p>Detecting your location &amp; finding the nearest bin...</p>
+            <p data-i18n="loading.detecting">Detecting your location &amp; finding the nearest bin...</p>
           </div>
 
           <div class="location-field">
-            <span class="location-field__label">📍 Your location</span>
-            <strong id="user-location-text">Locating…</strong>
+            <span class="location-field__label" data-i18n="location.yourLocation">📍 Your location</span>
+            <strong id="user-location-text" data-i18n="location.locating">Locating…</strong>
           </div>
 
           <div class="metrics">
           <div class="metric-item">
-            <span>Walking distance</span>
+            <span data-i18n="metric.walkingDistance">Walking distance</span>
             <strong id="distance-text">-</strong>
           </div>
           <div class="metric-item">
-            <span>Estimated time</span>
+            <span data-i18n="metric.estimatedTime">Estimated time</span>
             <strong id="eta-text">-</strong>
           </div>
         </div>
 
         <section class="legend" aria-label="Bin type legend">
-          <h3>Bin Types</h3>
+          <h3 data-i18n="legend.title">Bin Types</h3>
           <ul class="legend-list">
-            <li><span class="legend-icon type-glass">🍾</span><span>Glass</span></li>
-            <li><span class="legend-icon type-paper">📰</span><span>Paper</span></li>
-            <li><span class="legend-icon type-plastic">🧴</span><span>Plastic</span></li>
-            <li><span class="legend-icon type-metal">🥫</span><span>Metal</span></li>
-            <li><span class="legend-icon type-electronics">💻</span><span>Electronics</span></li>
-            <li><span class="legend-icon type-mixed">♻️</span><span>Mixed</span></li>
-            <li><span class="legend-icon type-generic">🗑️</span><span>Unknown</span></li>
+            <li><span class="legend-icon type-glass">🍾</span><span data-i18n="type.glass">Glass</span></li>
+            <li><span class="legend-icon type-paper">📰</span><span data-i18n="type.paper">Paper</span></li>
+            <li><span class="legend-icon type-plastic">🧴</span><span data-i18n="type.plastic">Plastic</span></li>
+            <li><span class="legend-icon type-metal">🥫</span><span data-i18n="type.metal">Metal</span></li>
+            <li><span class="legend-icon type-electronics">💻</span><span data-i18n="type.electronics">Electronics</span></li>
+            <li><span class="legend-icon type-mixed">♻️</span><span data-i18n="type.mixed">Mixed</span></li>
+            <li><span class="legend-icon type-generic">🗑️</span><span data-i18n="type.generic">Unknown</span></li>
           </ul>
         </section>
 
         <div class="card-actions">
-          <a id="btn-directions" class="btn btn-primary disabled" href="#" target="_blank" rel="noreferrer">Get Directions</a>
-          <button id="btn-manual-location" class="btn btn-secondary" type="button" aria-pressed="false">Set Location on Map</button>
-          <button id="btn-retry" class="btn btn-secondary" type="button">Retry</button>
+          <a id="btn-directions" class="btn btn-primary disabled" href="#" target="_blank" rel="noreferrer" data-i18n="btn.getDirections">Get Directions</a>
+          <button id="btn-manual-location" class="btn btn-secondary" type="button" aria-pressed="false" data-i18n="btn.setLocationOnMap">Set Location on Map</button>
+          <button id="btn-retry" class="btn btn-secondary" type="button" data-i18n="btn.retry">Retry</button>
         </div>
         </div>
       </section>
 
       <aside id="error-banner" class="error-banner hidden" role="status" aria-live="polite">
-        <p id="error-text">Something went wrong while loading nearby bins.</p>
-        <button id="btn-banner-retry" class="btn btn-secondary" type="button">Retry</button>
+        <p id="error-text" data-i18n="error.default">Something went wrong while loading nearby bins.</p>
+        <button id="btn-banner-retry" class="btn btn-secondary" type="button" data-i18n="btn.retry">Retry</button>
       </aside>
 
-      <div id="add-bin-hint" class="add-bin-hint hidden" role="status" aria-live="polite">
+      <div id="add-bin-hint" class="add-bin-hint hidden" role="status" aria-live="polite" data-i18n="hint.tapMap">
         Tap the map to place your new bin.
       </div>
     </main>
@@ -113,46 +118,46 @@
 <dialog id="add-bin-dialog" class="add-bin-dialog" aria-labelledby="add-bin-title">
   <form id="add-bin-form" class="add-bin-form">
     <div class="add-bin-form__head">
-      <h2 id="add-bin-title">Register a recycling bin</h2>
-      <button id="btn-close-add-bin" class="dialog-close" type="button" aria-label="Close dialog">✕</button>
+      <h2 id="add-bin-title" data-i18n="dialog.title">Register a recycling bin</h2>
+      <button id="btn-close-add-bin" class="dialog-close" type="button" data-i18n-aria-label="dialog.close" aria-label="Close dialog">✕</button>
     </div>
 
     <label class="field">
-      <span>Name <em>*</em></span>
-      <input id="bin-name-input" name="name" type="text" maxlength="255" required autocomplete="off" placeholder="e.g. Riverside Glass Bank" />
+      <span><span data-i18n="field.name">Name</span> <em>*</em></span>
+      <input id="bin-name-input" name="name" type="text" maxlength="255" required autocomplete="off" data-i18n-placeholder="placeholder.name" placeholder="e.g. Riverside Glass Bank" />
     </label>
 
     <label class="field">
-      <span>Address <small>(optional)</small></span>
-      <input id="bin-address-input" name="address" type="text" autocomplete="off" placeholder="e.g. 5th Ave & E 59th St" />
+      <span><span data-i18n="field.address">Address</span> <small data-i18n="field.optional">(optional)</small></span>
+      <input id="bin-address-input" name="address" type="text" autocomplete="off" data-i18n-placeholder="placeholder.address" placeholder="e.g. 5th Ave & E 59th St" />
     </label>
 
     <label class="field">
-      <span>Type <small>(optional)</small></span>
+      <span><span data-i18n="field.type">Type</span> <small data-i18n="field.optional">(optional)</small></span>
       <select id="bin-type-input" name="type">
-        <option value="">Unknown</option>
-        <option value="glass">Glass</option>
-        <option value="paper">Paper</option>
-        <option value="plastic">Plastic</option>
-        <option value="metal">Metal</option>
-        <option value="electronics">Electronics</option>
-        <option value="mixed">Mixed</option>
+        <option value="" data-i18n="type.generic">Unknown</option>
+        <option value="glass" data-i18n="type.glass">Glass</option>
+        <option value="paper" data-i18n="type.paper">Paper</option>
+        <option value="plastic" data-i18n="type.plastic">Plastic</option>
+        <option value="metal" data-i18n="type.metal">Metal</option>
+        <option value="electronics" data-i18n="type.electronics">Electronics</option>
+        <option value="mixed" data-i18n="type.mixed">Mixed</option>
       </select>
     </label>
 
     <div class="field location-picker">
-      <span>Location <em>*</em></span>
+      <span><span data-i18n="field.location">Location</span> <em>*</em></span>
       <div class="location-picker__row">
-        <strong id="bin-location-text">Not set</strong>
-        <button id="btn-pick-bin-location" class="btn btn-secondary" type="button">Pick on map</button>
+        <strong id="bin-location-text" data-i18n="binloc.notSet">Not set</strong>
+        <button id="btn-pick-bin-location" class="btn btn-secondary" type="button" data-i18n="btn.pickOnMap">Pick on map</button>
       </div>
     </div>
 
     <p id="add-bin-error" class="add-bin-error hidden" role="alert"></p>
 
     <div class="dialog-actions">
-      <button id="btn-cancel-add-bin" class="btn btn-secondary" type="button">Cancel</button>
-      <button id="btn-submit-bin" class="btn btn-primary" type="submit">Save bin</button>
+      <button id="btn-cancel-add-bin" class="btn btn-secondary" type="button" data-i18n="btn.cancel">Cancel</button>
+      <button id="btn-submit-bin" class="btn btn-primary" type="submit" data-i18n="btn.saveBin">Save bin</button>
     </div>
   </form>
 </dialog>

@@ -17,6 +17,7 @@ Mobile-first, single-page map UI (vanilla HTML/CSS/JS + [Leaflet](https://leafle
 - **Collapsible status card** — a clear minimize/expand toggle so the panel doesn't cover the map on mobile.
 - **Manual location** — **Set Location on Map** lets you tap any point to use it instead of GPS.
 - **Configurable map style** — choose the tile layer (see [Map style](#map-style)).
+- **Bilingual UI (English / Hebrew)** — a language toggle in the header switches the entire interface, with full **RTL** layout for Hebrew. The choice is remembered and defaults to the browser language (see [Languages](#languages)).
 - **Runtime endpoints** — `GET /whoami`, `GET /config`, `GET /health` (Pages Functions).
 
 ## Repository Structure
@@ -105,6 +106,23 @@ Set `MAP_STYLE` (or `mapStyle` in the inline config) to one of:
 | `topo` | OpenTopoMap |
 
 Unknown values fall back to `osm`.
+
+## Languages
+
+The UI ships with English (`en`) and Hebrew (`he`). A 🌐 toggle in the header switches languages instantly and Hebrew renders the whole app **right-to-left** (`<html dir="rtl">`).
+
+- **Selection order:** a previously chosen language (persisted in `localStorage` under `ecodrop_lang`) wins; otherwise the browser language is used (`he*` → Hebrew, everything else → English).
+- **All strings are translated** — header, status card, legend, buttons, map marker tooltips/popups, the Add Bin dialog, and every error/toast message. Distances and ETAs are localized too (e.g. `120 m` → `120 מ׳`, `2 min walk` → `2 דק׳ הליכה`).
+
+### Add a language
+
+Everything lives in `apps/ui/script.js`:
+
+1. Add the language code to `SUPPORTED_LANGS` (e.g. `"fr"`).
+2. Add a matching block to the `TRANSLATIONS` object with the **same keys** as `en`.
+3. Static markup is auto-translated via `data-i18n` / `data-i18n-title` / `data-i18n-placeholder` / `data-i18n-aria-label` attributes in `apps/ui/index.html`; add those attributes to any new text nodes.
+
+RTL for a new language: extend the `dir` check in `applyLanguage()` (currently `lang === "he" ? "rtl" : "ltr"`).
 
 ## Run Locally (with endpoints)
 

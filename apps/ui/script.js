@@ -8,13 +8,13 @@ const GEOLOCATION_OPTIONS = {
 const WALKING_METERS_PER_MINUTE = 78;
 
 const TYPE_ICON_MAP = {
-  glass: { label: "Glass", icon: "🍾", cssClass: "type-glass" },
-  paper: { label: "Paper", icon: "📰", cssClass: "type-paper" },
-  plastic: { label: "Plastic", icon: "🧴", cssClass: "type-plastic" },
-  metal: { label: "Metal", icon: "🥫", cssClass: "type-metal" },
-  electronics: { label: "Electronics", icon: "💻", cssClass: "type-electronics" },
-  mixed: { label: "Mixed", icon: "♻️", cssClass: "type-mixed" },
-  generic: { label: "Unknown", icon: "🗑️", cssClass: "type-generic" }
+  glass: { labelKey: "type.glass", icon: "🍾", cssClass: "type-glass" },
+  paper: { labelKey: "type.paper", icon: "📰", cssClass: "type-paper" },
+  plastic: { labelKey: "type.plastic", icon: "🧴", cssClass: "type-plastic" },
+  metal: { labelKey: "type.metal", icon: "🥫", cssClass: "type-metal" },
+  electronics: { labelKey: "type.electronics", icon: "💻", cssClass: "type-electronics" },
+  mixed: { labelKey: "type.mixed", icon: "♻️", cssClass: "type-mixed" },
+  generic: { labelKey: "type.generic", icon: "🗑️", cssClass: "type-generic" }
 };
 
 const appConfig = {
@@ -24,6 +24,193 @@ const appConfig = {
   backendBaseUrl: window.ECODROP_CONFIG?.backendBaseUrl ?? "http://localhost:3000",
   mapStyle: window.ECODROP_CONFIG?.mapStyle ?? "osm"
 };
+
+const SUPPORTED_LANGS = ["en", "he"];
+const LANG_STORAGE_KEY = "ecodrop_lang";
+
+const TRANSLATIONS = {
+  en: {
+    "lang.name": "English",
+    "brand.eyebrow": "Eco Navigation",
+    "header.rights": "All rights reserved.",
+    "fab.addBin": "Add Bin",
+    "fab.addBinTitle": "Register a new recycling bin",
+    "state.preparing": "Preparing map data",
+    "card.searching": "Searching nearby bins",
+    "panel.minimize": "Minimize panel",
+    "panel.expand": "Expand panel",
+    "loading.detecting": "Detecting your location & finding the nearest bin...",
+    "location.yourLocation": "📍 Your location",
+    "location.locating": "Locating…",
+    "metric.walkingDistance": "Walking distance",
+    "metric.estimatedTime": "Estimated time",
+    "legend.title": "Bin Types",
+    "type.glass": "Glass",
+    "type.paper": "Paper",
+    "type.plastic": "Plastic",
+    "type.metal": "Metal",
+    "type.electronics": "Electronics",
+    "type.mixed": "Mixed",
+    "type.generic": "Unknown",
+    "btn.getDirections": "Get Directions",
+    "btn.setLocationOnMap": "Set Location on Map",
+    "btn.cancelMapSelection": "Cancel Map Selection",
+    "btn.retry": "Retry",
+    "error.default": "Something went wrong while loading nearby bins.",
+    "error.failedLoad": "Failed to load recycling bins.",
+    "hint.tapMap": "Tap the map to place your new bin.",
+    "manual.tapMap": "Tap anywhere on the map to set your location.",
+    "dialog.title": "Register a recycling bin",
+    "dialog.close": "Close dialog",
+    "field.name": "Name",
+    "field.address": "Address",
+    "field.type": "Type",
+    "field.optional": "(optional)",
+    "field.location": "Location",
+    "placeholder.name": "e.g. Riverside Glass Bank",
+    "placeholder.address": "e.g. 5th Ave & E 59th St",
+    "binloc.notSet": "Not set",
+    "btn.pickOnMap": "Pick on map",
+    "btn.cancel": "Cancel",
+    "btn.saveBin": "Save bin",
+    "btn.saving": "Saving…",
+    "state.noBins": "No bins available from API",
+    "state.tryLater": "Try again later",
+    "state.nearestFromPoint": "Nearest recycling bin from selected map point",
+    "state.locationDefault": "Location unavailable. Using Manhattan as default.",
+    "state.nearestFound": "Nearest recycling bin found",
+    "state.selected": "Selected recycling bin",
+    "state.newRegistered": "New bin registered",
+    "unit.meters": "{n} m",
+    "unit.walkMin": "{n} min walk",
+    "popup.type": "Type: {value}",
+    "popup.address": "Address: {value}",
+    "popup.addressUnavailable": "Address unavailable",
+    "popup.distance": "Distance: {meters} m · {minutes} min walk",
+    "map.yourLocation": "Your location",
+    "map.youAreHere": "You are here",
+    "map.newBinLocation": "New bin location",
+    "reason.geolocationUnsupported": "Geolocation is not supported in this browser.",
+    "reason.permissionDenied": "Location permission denied.",
+    "reason.locationUnavailable": "Could not detect your location.",
+    "banner.manhattanCenter": "{reason} Showing Manhattan center.",
+    "banner.manhattanBin": "{reason} Showing nearest Manhattan bin.",
+    "addbin.enterName": "Please enter a bin name.",
+    "addbin.pickLocation": "Please pick the bin location on the map.",
+    "addbin.failed": "Failed to create bin.",
+    "bin.fallbackName": "Bin {id}"
+  },
+  he: {
+    "lang.name": "עברית",
+    "brand.eyebrow": "ניווט אקולוגי",
+    "header.rights": "כל הזכויות שמורות.",
+    "fab.addBin": "הוסף פח",
+    "fab.addBinTitle": "רישום פח מיחזור חדש",
+    "state.preparing": "מכין את נתוני המפה",
+    "card.searching": "מחפש פחים בקרבת מקום",
+    "panel.minimize": "מזער חלונית",
+    "panel.expand": "הרחב חלונית",
+    "loading.detecting": "מאתר את מיקומך ומחפש את הפח הקרוב ביותר...",
+    "location.yourLocation": "📍 המיקום שלך",
+    "location.locating": "מאתר…",
+    "metric.walkingDistance": "מרחק הליכה",
+    "metric.estimatedTime": "זמן משוער",
+    "legend.title": "סוגי פחים",
+    "type.glass": "זכוכית",
+    "type.paper": "נייר",
+    "type.plastic": "פלסטיק",
+    "type.metal": "מתכת",
+    "type.electronics": "אלקטרוניקה",
+    "type.mixed": "מעורב",
+    "type.generic": "לא ידוע",
+    "btn.getDirections": "קבל מסלול",
+    "btn.setLocationOnMap": "בחר מיקום במפה",
+    "btn.cancelMapSelection": "בטל בחירה במפה",
+    "btn.retry": "נסה שוב",
+    "error.default": "משהו השתבש בעת טעינת הפחים הסמוכים.",
+    "error.failedLoad": "טעינת פחי המיחזור נכשלה.",
+    "hint.tapMap": "הקש על המפה כדי למקם את הפח החדש.",
+    "manual.tapMap": "הקש בכל מקום במפה כדי לקבוע את מיקומך.",
+    "dialog.title": "רישום פח מיחזור",
+    "dialog.close": "סגור חלון",
+    "field.name": "שם",
+    "field.address": "כתובת",
+    "field.type": "סוג",
+    "field.optional": "(אופציונלי)",
+    "field.location": "מיקום",
+    "placeholder.name": "לדוגמה: נקודת זכוכית ריברסייד",
+    "placeholder.address": "לדוגמה: רחוב הרצל 5",
+    "binloc.notSet": "לא נקבע",
+    "btn.pickOnMap": "בחר במפה",
+    "btn.cancel": "ביטול",
+    "btn.saveBin": "שמור פח",
+    "btn.saving": "שומר…",
+    "state.noBins": "אין פחים זמינים מה-API",
+    "state.tryLater": "נסה שוב מאוחר יותר",
+    "state.nearestFromPoint": "הפח הקרוב ביותר מהנקודה שנבחרה במפה",
+    "state.locationDefault": "המיקום אינו זמין. משתמש במנהטן כברירת מחדל.",
+    "state.nearestFound": "נמצא הפח הקרוב ביותר",
+    "state.selected": "פח המיחזור שנבחר",
+    "state.newRegistered": "פח חדש נרשם",
+    "unit.meters": "{n} מ׳",
+    "unit.walkMin": "{n} דק׳ הליכה",
+    "popup.type": "סוג: {value}",
+    "popup.address": "כתובת: {value}",
+    "popup.addressUnavailable": "הכתובת אינה זמינה",
+    "popup.distance": "מרחק: {meters} מ׳ · {minutes} דק׳ הליכה",
+    "map.yourLocation": "המיקום שלך",
+    "map.youAreHere": "אתה כאן",
+    "map.newBinLocation": "מיקום הפח החדש",
+    "reason.geolocationUnsupported": "איתור מיקום אינו נתמך בדפדפן זה.",
+    "reason.permissionDenied": "הגישה למיקום נדחתה.",
+    "reason.locationUnavailable": "לא ניתן לאתר את מיקומך.",
+    "banner.manhattanCenter": "{reason} מציג את מרכז מנהטן.",
+    "banner.manhattanBin": "{reason} מציג את הפח הקרוב ביותר במנהטן.",
+    "addbin.enterName": "נא להזין שם פח.",
+    "addbin.pickLocation": "נא לבחור את מיקום הפח במפה.",
+    "addbin.failed": "יצירת הפח נכשלה.",
+    "bin.fallbackName": "פח {id}"
+  }
+};
+
+function detectInitialLang() {
+  try {
+    const saved = localStorage.getItem(LANG_STORAGE_KEY);
+    if (SUPPORTED_LANGS.includes(saved)) {
+      return saved;
+    }
+  } catch {
+    // storage unavailable
+  }
+  const nav = (navigator.language || "").toLowerCase();
+  return nav.startsWith("he") ? "he" : "en";
+}
+
+let currentLang = detectInitialLang();
+
+function t(key, vars) {
+  const table = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+  let str = table[key] ?? TRANSLATIONS.en[key] ?? key;
+  if (vars) {
+    for (const [name, value] of Object.entries(vars)) {
+      str = str.replace(new RegExp(`\\{${name}\\}`, "g"), String(value));
+    }
+  }
+  return str;
+}
+
+function formatMeters(meters) {
+  return t("unit.meters", { n: Math.round(meters) });
+}
+
+function formatWalkMinutes(meters) {
+  return t("unit.walkMin", {
+    n: Math.max(1, Math.ceil(meters / WALKING_METERS_PER_MINUTE))
+  });
+}
+
+let statusRenderer = null;
+let bannerRenderer = null;
 
 const MAP_STYLES = {
   osm: {
@@ -93,7 +280,9 @@ const elements = {
   closeAddBinButton: document.getElementById("btn-close-add-bin"),
   cancelAddBinButton: document.getElementById("btn-cancel-add-bin"),
   submitBinButton: document.getElementById("btn-submit-bin"),
-  addBinError: document.getElementById("add-bin-error")
+  addBinError: document.getElementById("add-bin-error"),
+  langToggle: document.getElementById("btn-lang"),
+  langToggleText: document.getElementById("lang-toggle-text")
 };
 
 const map = L.map("map", { zoomControl: false }).setView(MANHATTAN_CENTER, MAP_DEFAULT_ZOOM);
@@ -138,12 +327,16 @@ function setCardState(state) {
   elements.statusCard.classList.add(`is-${state}`);
 }
 
-function showErrorBanner(message) {
-  elements.errorText.textContent = message;
+function renderBanner(key, vars) {
+  bannerRenderer = () => {
+    elements.errorText.textContent = t(key, vars);
+  };
+  bannerRenderer();
   elements.errorBanner.classList.remove("hidden");
 }
 
 function hideErrorBanner() {
+  bannerRenderer = null;
   elements.errorBanner.classList.add("hidden");
 }
 
@@ -164,11 +357,14 @@ function setDirectionsLink(origin, destination) {
 
 function setLoadingState() {
   setCardState("loading");
-  elements.stateLabel.textContent = "Detecting your location & finding the nearest bin...";
-  elements.binName.textContent = "Searching nearby bins";
+  statusRenderer = () => {
+    elements.stateLabel.textContent = t("loading.detecting");
+    elements.binName.textContent = t("card.searching");
+  };
+  statusRenderer();
   elements.distanceText.textContent = "-";
   elements.etaText.textContent = "-";
-  elements.userLocationText.textContent = "Locating…";
+  elements.userLocationText.textContent = t("location.locating");
   hideErrorBanner();
   resetDirectionsButton();
 }
@@ -215,13 +411,11 @@ async function updateUserLocation(coords) {
 function setCardCollapsed(collapsed) {
   elements.statusCard.classList.toggle("is-collapsed", collapsed);
   elements.minimizeButton.setAttribute("aria-expanded", collapsed ? "false" : "true");
-  elements.minimizeButton.setAttribute(
-    "title",
-    collapsed ? "Expand panel" : "Minimize panel"
-  );
+  const label = t(collapsed ? "panel.expand" : "panel.minimize");
+  elements.minimizeButton.setAttribute("title", label);
   const srLabel = elements.minimizeButton.querySelector(".sr-only");
   if (srLabel) {
-    srLabel.textContent = collapsed ? "Expand panel" : "Minimize panel";
+    srLabel.textContent = label;
   }
 }
 
@@ -229,46 +423,58 @@ function setManualLocationMode(enabled) {
   manualLocationMode = enabled;
   elements.manualLocationButton.classList.toggle("is-active", enabled);
   elements.manualLocationButton.setAttribute("aria-pressed", enabled ? "true" : "false");
-  elements.manualLocationButton.textContent = enabled ? "Cancel Map Selection" : "Set Location on Map";
+  elements.manualLocationButton.textContent = t(enabled ? "btn.cancelMapSelection" : "btn.setLocationOnMap");
   map.getContainer().classList.toggle("pick-location", enabled);
   if (enabled) {
-    elements.stateLabel.textContent = "Tap anywhere on the map to set your location.";
+    statusRenderer = () => {
+      elements.stateLabel.textContent = t("manual.tapMap");
+    };
+    statusRenderer();
     hideErrorBanner();
   }
 }
 
 function setEmptyState() {
   setCardState("success");
-  elements.stateLabel.textContent = "No bins available from API";
-  elements.binName.textContent = "Try again later";
+  statusRenderer = () => {
+    elements.stateLabel.textContent = t("state.noBins");
+    elements.binName.textContent = t("state.tryLater");
+  };
+  statusRenderer();
   elements.distanceText.textContent = "-";
   elements.etaText.textContent = "-";
   hideErrorBanner();
   resetDirectionsButton();
 }
 
-function setErrorState(message, details) {
+function setErrorState(messageKey, details) {
   setCardState("error");
-  elements.stateLabel.textContent = message;
-  elements.binName.textContent = details;
+  statusRenderer = () => {
+    elements.stateLabel.textContent = t(messageKey);
+    elements.binName.textContent = details;
+  };
+  statusRenderer();
   elements.distanceText.textContent = "-";
   elements.etaText.textContent = "-";
   resetDirectionsButton();
-  showErrorBanner(message);
+  renderBanner(messageKey);
 }
 
 function setNearestState(binName, distanceMeters, fallback, manual) {
   setCardState("success");
-  if (manual) {
-    elements.stateLabel.textContent = "Nearest recycling bin from selected map point";
-  } else {
-    elements.stateLabel.textContent = fallback
-      ? "Location unavailable. Using Manhattan as default."
-      : "Nearest recycling bin found";
-  }
-  elements.binName.textContent = binName;
-  elements.distanceText.textContent = `${Math.round(distanceMeters)} m`;
-  elements.etaText.textContent = `${Math.max(1, Math.ceil(distanceMeters / WALKING_METERS_PER_MINUTE))} min walk`;
+  statusRenderer = () => {
+    if (manual) {
+      elements.stateLabel.textContent = t("state.nearestFromPoint");
+    } else {
+      elements.stateLabel.textContent = fallback
+        ? t("state.locationDefault")
+        : t("state.nearestFound");
+    }
+    elements.binName.textContent = binName;
+    elements.distanceText.textContent = formatMeters(distanceMeters);
+    elements.etaText.textContent = formatWalkMinutes(distanceMeters);
+  };
+  statusRenderer();
 }
 
 function highlightSelectedMarker(binId) {
@@ -293,10 +499,13 @@ function selectBin(bin) {
   setDirectionsLink(currentUserCoordinates, binCoords);
 
   setCardState("success");
-  elements.stateLabel.textContent = "Selected recycling bin";
-  elements.binName.textContent = bin.name;
-  elements.distanceText.textContent = `${Math.round(meters)} m`;
-  elements.etaText.textContent = `${Math.max(1, Math.ceil(meters / WALKING_METERS_PER_MINUTE))} min walk`;
+  statusRenderer = () => {
+    elements.stateLabel.textContent = t("state.selected");
+    elements.binName.textContent = bin.name;
+    elements.distanceText.textContent = formatMeters(meters);
+    elements.etaText.textContent = formatWalkMinutes(meters);
+  };
+  statusRenderer();
   hideErrorBanner();
   highlightSelectedMarker(bin.id);
 }
@@ -318,6 +527,10 @@ function buildApiUrl(path, params) {
 function getTypeMeta(rawType) {
   const key = typeof rawType === "string" ? rawType.toLowerCase() : "";
   return TYPE_ICON_MAP[key] ?? TYPE_ICON_MAP.generic;
+}
+
+function typeLabel(rawType) {
+  return t(getTypeMeta(rawType).labelKey);
 }
 
 function createBinIcon(rawType) {
@@ -352,11 +565,13 @@ function createPopupContent(bin) {
   container.appendChild(title);
 
   const typeLine = document.createElement("p");
-  typeLine.textContent = `Type: ${getTypeMeta(bin.type).label}`;
+  typeLine.textContent = t("popup.type", { value: typeLabel(bin.type) });
   container.appendChild(typeLine);
 
   const addressLine = document.createElement("p");
-  addressLine.textContent = `Address: ${bin.address && bin.address.trim() ? bin.address : "Address unavailable"}`;
+  addressLine.textContent = t("popup.address", {
+    value: bin.address && bin.address.trim() ? bin.address : t("popup.addressUnavailable")
+  });
   container.appendChild(addressLine);
 
   if (currentUserCoordinates) {
@@ -364,7 +579,10 @@ function createPopupContent(bin) {
     const walkMinutes = Math.max(1, Math.ceil(meters / WALKING_METERS_PER_MINUTE));
     const distanceLine = document.createElement("p");
     distanceLine.className = "popup-distance";
-    distanceLine.textContent = `Distance: ${Math.round(meters)} m · ${walkMinutes} min walk`;
+    distanceLine.textContent = t("popup.distance", {
+      meters: Math.round(meters),
+      minutes: walkMinutes
+    });
     container.appendChild(distanceLine);
   }
 
@@ -373,7 +591,7 @@ function createPopupContent(bin) {
 
 function parseBin(bin) {
   const id = Number(bin?.id);
-  const name = typeof bin?.name === "string" && bin.name.trim() ? bin.name.trim() : `Bin ${id}`;
+  const name = typeof bin?.name === "string" && bin.name.trim() ? bin.name.trim() : t("bin.fallbackName", { id });
   const latitude = Number(bin?.latitude);
   const longitude = Number(bin?.longitude);
   const address = typeof bin?.address === "string" ? bin.address : null;
@@ -503,10 +721,10 @@ function upsertUserMarker(lat, lng) {
     userMarker = L.marker([lat, lng], {
       icon: userIcon,
       keyboard: true,
-      title: "Your location",
-      alt: "Your location"
+      title: t("map.yourLocation"),
+      alt: t("map.yourLocation")
     })
-      .bindPopup("You are here")
+      .bindPopup(t("map.youAreHere"))
       .addTo(map);
     return;
   }
@@ -528,7 +746,7 @@ function upsertRouteLine(userCoords, nearestCoords) {
 }
 
 function createBinMarkerInstance(bin) {
-  const title = `${bin.name} (${getTypeMeta(bin.type).label})`;
+  const title = `${bin.name} (${typeLabel(bin.type)})`;
   const marker = L.marker([bin.latitude, bin.longitude], {
     icon: createBinIcon(bin.type),
     keyboard: true,
@@ -571,7 +789,7 @@ function renderBinMarkers(bins) {
   bins.forEach((bin) => {
     seenIds.add(bin.id);
     const coords = [bin.latitude, bin.longitude];
-    const title = `${bin.name} (${getTypeMeta(bin.type).label})`;
+    const title = `${bin.name} (${typeLabel(bin.type)})`;
     const popupFn = () => createPopupContent(bin);
     const onSelect = () => selectBin(bin);
 
@@ -623,7 +841,7 @@ function resolveLocation() {
       resolve({
         coords: MANHATTAN_CENTER,
         fallback: true,
-        reason: "Geolocation is not supported in this browser."
+        reasonKey: "reason.geolocationUnsupported"
       });
       return;
     }
@@ -633,17 +851,17 @@ function resolveLocation() {
         resolve({
           coords: [position.coords.latitude, position.coords.longitude],
           fallback: false,
-          reason: ""
+          reasonKey: ""
         });
       },
       (error) => {
-        const reason = error.code === error.PERMISSION_DENIED
-          ? "Location permission denied."
-          : "Could not detect your location.";
+        const reasonKey = error.code === error.PERMISSION_DENIED
+          ? "reason.permissionDenied"
+          : "reason.locationUnavailable";
         resolve({
           coords: MANHATTAN_CENTER,
           fallback: true,
-          reason
+          reasonKey
         });
       },
       GEOLOCATION_OPTIONS
@@ -661,7 +879,7 @@ async function refreshMapData(options = {}) {
     ? {
       coords: forcedCoords,
       fallback: false,
-      reason: "",
+      reasonKey: "",
       manual: true
     }
     : await resolveLocation();
@@ -677,7 +895,7 @@ async function refreshMapData(options = {}) {
     if (!bins.length) {
       setEmptyState();
       if (location.fallback) {
-        showErrorBanner(`${location.reason} Showing Manhattan center.`);
+        renderBanner("banner.manhattanCenter", { reason: t(location.reasonKey) });
       }
       map.setView(location.coords, USER_FOCUS_ZOOM, { animate: true });
       return;
@@ -690,13 +908,13 @@ async function refreshMapData(options = {}) {
     setNearestState(nearest.nearestBin.name, nearest.distanceMeters, location.fallback, !!location.manual);
 
     if (location.fallback) {
-      showErrorBanner(`${location.reason} Showing nearest Manhattan bin.`);
+      renderBanner("banner.manhattanBin", { reason: t(location.reasonKey) });
     }
 
     focusOnUser(location.coords, currentNearestCoordinates);
   } catch (error) {
     const details = error instanceof Error ? error.message : "Unexpected API error.";
-    setErrorState("Failed to load recycling bins.", details);
+    setErrorState("error.failedLoad", details);
   }
 }
 
@@ -709,7 +927,7 @@ function setAddBinPickMode(enabled) {
 function updateAddBinLocationLabel() {
   elements.binLocationText.textContent = addBinCoords
     ? formatCoords(addBinCoords)
-    : "Not set";
+    : t("binloc.notSet");
 }
 
 function showAddBinError(message) {
@@ -767,8 +985,8 @@ function handleAddBinMapClick(latlng) {
   } else {
     addBinPreviewMarker = L.marker(addBinCoords, {
       icon: createBinIcon(elements.binTypeInput.value || null),
-      title: "New bin location",
-      alt: "New bin location"
+      title: t("map.newBinLocation"),
+      alt: t("map.newBinLocation")
     }).addTo(map);
   }
   setAddBinPickMode(false);
@@ -782,12 +1000,12 @@ async function submitNewBin(event) {
 
   const name = elements.binNameInput.value.trim();
   if (!name) {
-    showAddBinError("Please enter a bin name.");
+    showAddBinError(t("addbin.enterName"));
     elements.binNameInput.focus();
     return;
   }
   if (!addBinCoords) {
-    showAddBinError("Please pick the bin location on the map.");
+    showAddBinError(t("addbin.pickLocation"));
     return;
   }
 
@@ -806,7 +1024,7 @@ async function submitNewBin(event) {
   }
 
   elements.submitBinButton.disabled = true;
-  elements.submitBinButton.textContent = "Saving…";
+  elements.submitBinButton.textContent = t("btn.saving");
 
   try {
     const created = await createBin(payload);
@@ -822,15 +1040,67 @@ async function submitNewBin(event) {
       selectBin(created);
     } else {
       setCardState("success");
-      elements.stateLabel.textContent = "New bin registered";
-      elements.binName.textContent = created.name;
+      statusRenderer = () => {
+        elements.stateLabel.textContent = t("state.newRegistered");
+        elements.binName.textContent = created.name;
+      };
+      statusRenderer();
     }
   } catch (error) {
-    const details = error instanceof Error ? error.message : "Failed to create bin.";
+    const details = error instanceof Error ? error.message : t("addbin.failed");
     showAddBinError(details);
   } finally {
     elements.submitBinButton.disabled = false;
-    elements.submitBinButton.textContent = "Save bin";
+    elements.submitBinButton.textContent = t("btn.saveBin");
+  }
+}
+
+function applyStaticTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.getAttribute("data-i18n"));
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((node) => {
+    node.setAttribute("title", t(node.getAttribute("data-i18n-title")));
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    node.setAttribute("placeholder", t(node.getAttribute("data-i18n-placeholder")));
+  });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => {
+    node.setAttribute("aria-label", t(node.getAttribute("data-i18n-aria-label")));
+  });
+}
+
+function applyLanguage(lang) {
+  currentLang = SUPPORTED_LANGS.includes(lang) ? lang : "en";
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, currentLang);
+  } catch {
+    // storage unavailable
+  }
+
+  document.documentElement.setAttribute("lang", currentLang);
+  document.documentElement.setAttribute("dir", currentLang === "he" ? "rtl" : "ltr");
+
+  applyStaticTranslations();
+
+  const other = SUPPORTED_LANGS.find((code) => code !== currentLang) || "en";
+  elements.langToggleText.textContent = TRANSLATIONS[other]["lang.name"];
+  elements.langToggle.setAttribute(
+    "aria-label",
+    `Switch language to ${TRANSLATIONS[other]["lang.name"]}`
+  );
+
+  if (statusRenderer) {
+    statusRenderer();
+  }
+  if (bannerRenderer) {
+    bannerRenderer();
+  }
+  setManualLocationMode(manualLocationMode);
+  setCardCollapsed(elements.statusCard.classList.contains("is-collapsed"));
+  updateAddBinLocationLabel();
+  if (userMarker) {
+    userMarker.setPopupContent(t("map.youAreHere"));
   }
 }
 
@@ -877,11 +1147,17 @@ function setupShell() {
       addBinPreviewMarker.setIcon(createBinIcon(elements.binTypeInput.value || null));
     }
   });
+
+  elements.langToggle.addEventListener("click", () => {
+    const next = currentLang === "he" ? "en" : "he";
+    applyLanguage(next);
+  });
 }
 
 (async () => {
   await loadRuntimeConfig();
   applyMapStyle(appConfig.mapStyle);
   setupShell();
+  applyLanguage(currentLang);
   refreshMapData();
 })();
