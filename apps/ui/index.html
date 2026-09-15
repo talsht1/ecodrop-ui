@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <!-- trigger: ui deploy pipeline v7 (new bin types + colored frames) -->
+  <!-- trigger: ui deploy pipeline v8 (report hazard) -->
   <title>EcoDrop | Recycling Bin Locator</title>
   <link
     rel="stylesheet"
@@ -35,10 +35,16 @@
     <main class="map-stage">
       <div id="map" class="map-canvas" role="application" aria-label="Recycling bin locator map"></div>
 
-      <button id="btn-add-bin" class="fab-add-bin" type="button" data-i18n-title="fab.addBinTitle" title="Register a new recycling bin">
-        <span class="fab-add-bin__icon" aria-hidden="true">➕</span>
-        <span data-i18n="fab.addBin">Add Bin</span>
-      </button>
+      <div class="fab-stack">
+        <button id="btn-add-bin" class="fab fab-add-bin" type="button" data-i18n-title="fab.addBinTitle" title="Register a new recycling bin">
+          <span class="fab__icon" aria-hidden="true">➕</span>
+          <span data-i18n="fab.addBin">Add Bin</span>
+        </button>
+        <button id="btn-report-hazard" class="fab fab-report-hazard" type="button" data-i18n-title="fab.reportHazardTitle" title="Report a hazard">
+          <span class="fab__icon" aria-hidden="true">⚠️</span>
+          <span data-i18n="fab.reportHazard">Report Hazard</span>
+        </button>
+      </div>
 
       <section id="status-card" class="status-card is-loading" aria-live="polite">
         <div class="card-header">
@@ -115,6 +121,12 @@
       <div id="add-bin-hint" class="add-bin-hint hidden" role="status" aria-live="polite" data-i18n="hint.tapMap">
         Tap the map to place your new bin.
       </div>
+
+      <div id="hazard-hint" class="add-bin-hint hidden" role="status" aria-live="polite" data-i18n="hint.tapMapHazard">
+        Tap the map to set the hazard location.
+      </div>
+
+      <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
     </main>
   </article>
 </div>
@@ -166,6 +178,38 @@
     <div class="dialog-actions">
       <button id="btn-cancel-add-bin" class="btn btn-secondary" type="button" data-i18n="btn.cancel">Cancel</button>
       <button id="btn-submit-bin" class="btn btn-primary" type="submit" data-i18n="btn.saveBin">Save bin</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="hazard-dialog" class="add-bin-dialog" aria-labelledby="hazard-title">
+  <form id="hazard-form" class="add-bin-form">
+    <div class="add-bin-form__head">
+      <h2 id="hazard-title" data-i18n="hazard.title">Report a hazard</h2>
+      <button id="btn-close-hazard" class="dialog-close" type="button" data-i18n-aria-label="dialog.close" aria-label="Close dialog">✕</button>
+    </div>
+
+    <label class="field">
+      <span><span data-i18n="hazard.description">Description</span> <em>*</em></span>
+      <textarea id="hazard-description-input" name="description" rows="4" maxlength="1000" required autocomplete="off" data-i18n-placeholder="placeholder.hazard" placeholder="Describe the hazard (e.g. overflowing bin, broken glass)…"></textarea>
+    </label>
+
+    <div class="field location-picker">
+      <span><span data-i18n="field.location">Location</span> <em>*</em></span>
+      <div class="location-picker__row">
+        <strong id="hazard-location-text" data-i18n="binloc.notSet">Not set</strong>
+        <div class="location-picker__buttons">
+          <button id="btn-use-my-location" class="btn btn-secondary" type="button" data-i18n="btn.useMyLocation">Use my location</button>
+          <button id="btn-pick-hazard-location" class="btn btn-secondary" type="button" data-i18n="btn.pickOnMap">Pick on map</button>
+        </div>
+      </div>
+    </div>
+
+    <p id="hazard-error" class="add-bin-error hidden" role="alert"></p>
+
+    <div class="dialog-actions">
+      <button id="btn-cancel-hazard" class="btn btn-secondary" type="button" data-i18n="btn.cancel">Cancel</button>
+      <button id="btn-submit-hazard" class="btn btn-primary" type="submit" data-i18n="btn.submitReport">Submit report</button>
     </div>
   </form>
 </dialog>

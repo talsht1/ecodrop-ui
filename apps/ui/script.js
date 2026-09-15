@@ -39,6 +39,20 @@ const TRANSLATIONS = {
     "header.rights": "All rights reserved.",
     "fab.addBin": "Add Bin",
     "fab.addBinTitle": "Register a new recycling bin",
+    "fab.reportHazard": "Report Hazard",
+    "fab.reportHazardTitle": "Report a hazard",
+    "hazard.title": "Report a hazard",
+    "hazard.description": "Description",
+    "placeholder.hazard": "Describe the hazard (e.g. overflowing bin, broken glass)…",
+    "btn.useMyLocation": "Use my location",
+    "btn.submitReport": "Submit report",
+    "hazard.enterDescription": "Please describe the hazard.",
+    "hazard.pickLocation": "Please set the hazard location.",
+    "hazard.locating": "Getting your location…",
+    "hazard.noLocation": "Location unavailable. Pick it on the map.",
+    "hint.tapMapHazard": "Tap the map to set the hazard location.",
+    "map.hazardLocation": "Hazard location",
+    "toast.hazardReported": "Thanks! Your hazard report was submitted.",
     "state.preparing": "Preparing map data",
     "card.searching": "Searching nearby bins",
     "panel.minimize": "Minimize panel",
@@ -114,6 +128,20 @@ const TRANSLATIONS = {
     "header.rights": "כל הזכויות שמורות.",
     "fab.addBin": "הוסף פח",
     "fab.addBinTitle": "רישום פח מיחזור חדש",
+    "fab.reportHazard": "דווח על מפגע",
+    "fab.reportHazardTitle": "דיווח על מפגע",
+    "hazard.title": "דיווח על מפגע",
+    "hazard.description": "תיאור",
+    "placeholder.hazard": "תארו את המפגע (לדוגמה: פח עולה על גדותיו, זכוכית שבורה)…",
+    "btn.useMyLocation": "השתמש במיקומי",
+    "btn.submitReport": "שלח דיווח",
+    "hazard.enterDescription": "נא לתאר את המפגע.",
+    "hazard.pickLocation": "נא לקבוע את מיקום המפגע.",
+    "hazard.locating": "מאתר את מיקומך…",
+    "hazard.noLocation": "המיקום אינו זמין. בחרו אותו במפה.",
+    "hint.tapMapHazard": "הקש על המפה כדי לקבוע את מיקום המפגע.",
+    "map.hazardLocation": "מיקום המפגע",
+    "toast.hazardReported": "תודה! הדיווח על המפגע נשלח.",
     "state.preparing": "מכין את נתוני המפה",
     "card.searching": "מחפש פחים בקרבת מקום",
     "panel.minimize": "מזער חלונית",
@@ -293,6 +321,19 @@ const elements = {
   cancelAddBinButton: document.getElementById("btn-cancel-add-bin"),
   submitBinButton: document.getElementById("btn-submit-bin"),
   addBinError: document.getElementById("add-bin-error"),
+  reportHazardButton: document.getElementById("btn-report-hazard"),
+  hazardDialog: document.getElementById("hazard-dialog"),
+  hazardForm: document.getElementById("hazard-form"),
+  hazardDescriptionInput: document.getElementById("hazard-description-input"),
+  hazardLocationText: document.getElementById("hazard-location-text"),
+  pickHazardLocationButton: document.getElementById("btn-pick-hazard-location"),
+  useMyLocationButton: document.getElementById("btn-use-my-location"),
+  closeHazardButton: document.getElementById("btn-close-hazard"),
+  cancelHazardButton: document.getElementById("btn-cancel-hazard"),
+  submitHazardButton: document.getElementById("btn-submit-hazard"),
+  hazardError: document.getElementById("hazard-error"),
+  hazardHint: document.getElementById("hazard-hint"),
+  toast: document.getElementById("toast"),
   langToggle: document.getElementById("btn-lang"),
   langToggleText: document.getElementById("lang-toggle-text")
 };
@@ -322,6 +363,13 @@ const userIcon = L.divIcon({
   iconAnchor: [13, 13]
 });
 
+const hazardIcon = L.divIcon({
+  className: "",
+  html: '<div class="hazard-marker" aria-hidden="true"><span>⚠️</span></div>',
+  iconSize: [34, 34],
+  iconAnchor: [17, 17]
+});
+
 const binsLayer = L.layerGroup().addTo(map);
 const binMarkersById = new Map();
 let userMarker;
@@ -333,6 +381,10 @@ let manualLocationMode = false;
 let addBinPickMode = false;
 let addBinCoords = null;
 let addBinPreviewMarker = null;
+let hazardPickMode = false;
+let hazardCoords = null;
+let hazardPreviewMarker = null;
+let toastTimer = null;
 
 function setCardState(state) {
   elements.statusCard.classList.remove("is-loading", "is-success", "is-error");
@@ -1067,6 +1119,173 @@ async function submitNewBin(event) {
   }
 }
 
+const REPORTS_PATH = "/api/reports";
+
+function showToast(message) {
+  elements.toast.textContent = message;
+  elements.toast.classList.remove("hidden");
+  requestAnimationFrame(() => elements.toast.classList.add("is-visible"));
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+  }
+  toastTimer = setTimeout(() => {
+    elements.toast.classList.remove("is-visible");
+    setTimeout(() => elements.toast.classList.add("hidden"), 250);
+  }, 3200);
+}
+
+function setHazardPickMode(enabled) {
+  hazardPickMode = enabled;
+  map.getContainer().classList.toggle("pick-location", enabled);
+  elements.hazardHint.classList.toggle("hidden", !enabled);
+}
+
+function updateHazardLocationLabel() {
+  elements.hazardLocationText.textContent = hazardCoords
+    ? formatCoords(hazardCoords)
+    : t("binloc.notSet");
+}
+
+function showHazardError(message) {
+  elements.hazardError.textContent = message;
+  elements.hazardError.classList.remove("hidden");
+}
+
+function clearHazardError() {
+  elements.hazardError.textContent = "";
+  elements.hazardError.classList.add("hidden");
+}
+
+function openHazardDialog() {
+  clearHazardError();
+  if (typeof elements.hazardDialog.showModal === "function") {
+    if (!elements.hazardDialog.open) {
+      elements.hazardDialog.showModal();
+    }
+  } else {
+    elements.hazardDialog.setAttribute("open", "");
+  }
+}
+
+function closeHazardDialog() {
+  if (typeof elements.hazardDialog.close === "function") {
+    if (elements.hazardDialog.open) {
+      elements.hazardDialog.close();
+    }
+  } else {
+    elements.hazardDialog.removeAttribute("open");
+  }
+}
+
+function clearHazardPreview() {
+  if (hazardPreviewMarker) {
+    hazardPreviewMarker.remove();
+    hazardPreviewMarker = null;
+  }
+}
+
+function resetHazardForm() {
+  elements.hazardForm.reset();
+  hazardCoords = null;
+  clearHazardPreview();
+  updateHazardLocationLabel();
+  clearHazardError();
+}
+
+function placeHazardPreview(coords) {
+  hazardCoords = coords;
+  if (hazardPreviewMarker) {
+    hazardPreviewMarker.setLatLng(coords);
+  } else {
+    hazardPreviewMarker = L.marker(coords, {
+      icon: hazardIcon,
+      title: t("map.hazardLocation"),
+      alt: t("map.hazardLocation")
+    }).addTo(map);
+  }
+  updateHazardLocationLabel();
+}
+
+function beginHazardLocationPick() {
+  closeHazardDialog();
+  setManualLocationMode(false);
+  setAddBinPickMode(false);
+  setHazardPickMode(true);
+}
+
+function handleHazardMapClick(latlng) {
+  placeHazardPreview([latlng.lat, latlng.lng]);
+  setHazardPickMode(false);
+  openHazardDialog();
+}
+
+function useMyLocationForHazard() {
+  if (currentUserCoordinates) {
+    placeHazardPreview(currentUserCoordinates);
+    map.setView(currentUserCoordinates, USER_FOCUS_ZOOM, { animate: true });
+    return;
+  }
+  if (!navigator.geolocation) {
+    showHazardError(t("hazard.noLocation"));
+    return;
+  }
+  clearHazardError();
+  elements.hazardLocationText.textContent = t("hazard.locating");
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const coords = [position.coords.latitude, position.coords.longitude];
+      placeHazardPreview(coords);
+      map.setView(coords, USER_FOCUS_ZOOM, { animate: true });
+    },
+    () => {
+      updateHazardLocationLabel();
+      showHazardError(t("hazard.noLocation"));
+    },
+    GEOLOCATION_OPTIONS
+  );
+}
+
+function reportHazard(payload) {
+  fetch(buildApiUrl(REPORTS_PATH), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify(payload),
+    keepalive: true
+  }).catch(() => {
+    // fire-and-forget: network errors are intentionally ignored
+  });
+}
+
+function submitHazard(event) {
+  event.preventDefault();
+  clearHazardError();
+
+  const description = elements.hazardDescriptionInput.value.trim();
+  if (!description) {
+    showHazardError(t("hazard.enterDescription"));
+    elements.hazardDescriptionInput.focus();
+    return;
+  }
+  if (!hazardCoords) {
+    showHazardError(t("hazard.pickLocation"));
+    return;
+  }
+
+  reportHazard({
+    description,
+    latitude: hazardCoords[0],
+    longitude: hazardCoords[1]
+  });
+
+  closeHazardDialog();
+  clearHazardPreview();
+  resetHazardForm();
+  showToast(t("toast.hazardReported"));
+}
+
 function applyStaticTranslations() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.getAttribute("data-i18n"));
@@ -1111,6 +1330,7 @@ function applyLanguage(lang) {
   setManualLocationMode(manualLocationMode);
   setCardCollapsed(elements.statusCard.classList.contains("is-collapsed"));
   updateAddBinLocationLabel();
+  updateHazardLocationLabel();
   if (userMarker) {
     userMarker.setPopupContent(t("map.youAreHere"));
   }
@@ -1123,6 +1343,10 @@ function setupShell() {
   setTimeout(() => map.invalidateSize(), 60);
   window.addEventListener("resize", () => map.invalidateSize());
   map.on("click", async (event) => {
+    if (hazardPickMode) {
+      handleHazardMapClick(event.latlng);
+      return;
+    }
     if (addBinPickMode) {
       handleAddBinMapClick(event.latlng);
       return;
@@ -1164,6 +1388,19 @@ function setupShell() {
     const next = currentLang === "he" ? "en" : "he";
     applyLanguage(next);
   });
+
+  elements.reportHazardButton.addEventListener("click", () => {
+    resetHazardForm();
+    openHazardDialog();
+  });
+  elements.pickHazardLocationButton.addEventListener("click", beginHazardLocationPick);
+  elements.useMyLocationButton.addEventListener("click", useMyLocationForHazard);
+  elements.closeHazardButton.addEventListener("click", closeHazardDialog);
+  elements.cancelHazardButton.addEventListener("click", () => {
+    closeHazardDialog();
+    resetHazardForm();
+  });
+  elements.hazardForm.addEventListener("submit", submitHazard);
 }
 
 (async () => {
