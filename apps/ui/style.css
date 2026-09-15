@@ -321,7 +321,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  border: 2px solid var(--bin-color, rgba(0, 0, 0, 0.12));
   font-size: 0.8rem;
 }
 
@@ -445,9 +446,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  font-size: 1rem;
-  border: 2px solid #ffffff;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 1.05rem;
+  border: 3px solid var(--bin-color, #546e7a);
   box-shadow: 0 6px 12px rgba(15, 23, 42, 0.28);
   transform: rotate(-6deg);
 }
@@ -456,13 +458,17 @@ body {
   transform: rotate(6deg);
 }
 
-.type-glass { background: #1565c0; }
-.type-paper { background: #8d6e63; }
-.type-plastic { background: #0277bd; }
-.type-metal { background: #455a64; }
-.type-electronics { background: #512da8; }
-.type-mixed { background: #2e7d32; }
-.type-generic { background: #546e7a; }
+.type-general_waste { --bin-color: #2e7d32; }
+.type-packaging { --bin-color: #ef6c00; }
+.type-glass { --bin-color: #6a1b9a; }
+.type-paper { --bin-color: #1565c0; }
+.type-textile { --bin-color: #ad1457; }
+.type-electronics { --bin-color: #00838f; }
+.type-cardboard { --bin-color: #8d6e63; }
+.type-bulky_waste { --bin-color: #455a64; }
+.type-bottle_recycling_machine { --bin-color: #00acc1; }
+.type-yard_waste { --bin-color: #558b2f; }
+.type-generic { --bin-color: #546e7a; }
 
 .leaflet-marker-icon.is-selected {
   z-index: 1000 !important;

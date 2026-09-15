@@ -9,7 +9,7 @@ Mobile-first, single-page map UI (vanilla HTML/CSS/JS + [Leaflet](https://leafle
 - **Full-screen responsive map** — framed container on desktop, edge-to-edge on mobile.
 - **Geolocation with fallback** — uses `navigator.geolocation`; if denied/unavailable it falls back to **Manhattan** coordinates.
 - **Auto-centers on you** — as soon as your location is resolved the map recenters on you (no wide zoom-out), even if the bin API is unavailable.
-- **Live bin data** — renders markers from `GET /api/bins`, typed icons (glass, paper, plastic, metal, electronics, mixed, generic) with a legend.
+- **Live bin data** — renders markers from `GET /api/bins`; each type shows its own icon inside a **colored frame** matching the bin's color (green general waste, orange packaging, purple glass, blue paper, textile, electronics, cardboard, bulky waste, bottle-recycling machine, yard waste, generic) with a legend.
 - **Nearest bin** — `GET /api/bins/nearest?lat=&lng=` drives the walking distance / ETA and the dashed route line.
 - **Selectable bins** — click (or keyboard-select) **any** bin to see its distance/ETA in the status card, redraw the route, update directions, and highlight the marker. Popups also show distance from your location.
 - **Register a bin** — an **Add Bin** button opens a dialog to create a bin (name, optional address, optional type) with its location picked by tapping the map; submits via `POST /api/bins` and drops the new marker.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <!-- trigger: ui deploy pipeline v6 (i18n en/he) -->
+  <!-- trigger: ui deploy pipeline v7 (new bin types + colored frames) -->
   <title>EcoDrop | Recycling Bin Locator</title>
   <link
     rel="stylesheet"
@@ -85,13 +85,17 @@
         <section class="legend" aria-label="Bin type legend">
           <h3 data-i18n="legend.title">Bin Types</h3>
           <ul class="legend-list">
-            <li><span class="legend-icon type-glass">🍾</span><span data-i18n="type.glass">Glass</span></li>
-            <li><span class="legend-icon type-paper">📰</span><span data-i18n="type.paper">Paper</span></li>
-            <li><span class="legend-icon type-plastic">🧴</span><span data-i18n="type.plastic">Plastic</span></li>
-            <li><span class="legend-icon type-metal">🥫</span><span data-i18n="type.metal">Metal</span></li>
-            <li><span class="legend-icon type-electronics">💻</span><span data-i18n="type.electronics">Electronics</span></li>
-            <li><span class="legend-icon type-mixed">♻️</span><span data-i18n="type.mixed">Mixed</span></li>
-            <li><span class="legend-icon type-generic">🗑️</span><span data-i18n="type.generic">Unknown</span></li>
+            <li><span class="legend-icon type-general_waste">🗑️</span><span data-i18n="type.general_waste">Green Bin</span></li>
+            <li><span class="legend-icon type-packaging">🧃</span><span data-i18n="type.packaging">Orange Packaging Bin</span></li>
+            <li><span class="legend-icon type-glass">🍾</span><span data-i18n="type.glass">Purple Glass Bin</span></li>
+            <li><span class="legend-icon type-paper">📰</span><span data-i18n="type.paper">Blue Paper Bin</span></li>
+            <li><span class="legend-icon type-textile">👕</span><span data-i18n="type.textile">Textile Bin</span></li>
+            <li><span class="legend-icon type-electronics">💻</span><span data-i18n="type.electronics">Electronics / E-Waste Bin</span></li>
+            <li><span class="legend-icon type-cardboard">📦</span><span data-i18n="type.cardboard">Cardboard Cage / Bin</span></li>
+            <li><span class="legend-icon type-bulky_waste">🛋️</span><span data-i18n="type.bulky_waste">Bulky Waste Container</span></li>
+            <li><span class="legend-icon type-bottle_recycling_machine">🔄</span><span data-i18n="type.bottle_recycling_machine">Bottle Recycling Machine</span></li>
+            <li><span class="legend-icon type-yard_waste">🌿</span><span data-i18n="type.yard_waste">Yard Waste / Pruning</span></li>
+            <li><span class="legend-icon type-generic">♻️</span><span data-i18n="type.generic">Unknown</span></li>
           </ul>
         </section>
 
@@ -136,12 +140,16 @@
       <span><span data-i18n="field.type">Type</span> <small data-i18n="field.optional">(optional)</small></span>
       <select id="bin-type-input" name="type">
         <option value="" data-i18n="type.generic">Unknown</option>
-        <option value="glass" data-i18n="type.glass">Glass</option>
-        <option value="paper" data-i18n="type.paper">Paper</option>
-        <option value="plastic" data-i18n="type.plastic">Plastic</option>
-        <option value="metal" data-i18n="type.metal">Metal</option>
-        <option value="electronics" data-i18n="type.electronics">Electronics</option>
-        <option value="mixed" data-i18n="type.mixed">Mixed</option>
+        <option value="general_waste" data-i18n="type.general_waste">Green Bin</option>
+        <option value="packaging" data-i18n="type.packaging">Orange Packaging Bin</option>
+        <option value="glass" data-i18n="type.glass">Purple Glass Bin</option>
+        <option value="paper" data-i18n="type.paper">Blue Paper Bin</option>
+        <option value="textile" data-i18n="type.textile">Textile Bin</option>
+        <option value="electronics" data-i18n="type.electronics">Electronics / E-Waste Bin</option>
+        <option value="cardboard" data-i18n="type.cardboard">Cardboard Cage / Bin</option>
+        <option value="bulky_waste" data-i18n="type.bulky_waste">Bulky Waste Container</option>
+        <option value="bottle_recycling_machine" data-i18n="type.bottle_recycling_machine">Bottle Recycling Machine</option>
+        <option value="yard_waste" data-i18n="type.yard_waste">Yard Waste / Pruning</option>
       </select>
     </label>
 
