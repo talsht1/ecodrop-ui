@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <!-- trigger: ui deploy pipeline v8 (report hazard) -->
+  <!-- trigger: ui deploy pipeline v9 (report multipart + image) -->
   <title>EcoDrop | Recycling Bin Locator</title>
   <link
     rel="stylesheet"
@@ -190,9 +190,28 @@
     </div>
 
     <label class="field">
-      <span><span data-i18n="hazard.description">Description</span> <em>*</em></span>
-      <textarea id="hazard-description-input" name="description" rows="4" maxlength="1000" required autocomplete="off" data-i18n-placeholder="placeholder.hazard" placeholder="Describe the hazard (e.g. overflowing bin, broken glass)…"></textarea>
+      <span><span data-i18n="hazard.message">Message</span> <small data-i18n="field.optional">(optional)</small></span>
+      <textarea id="hazard-message-input" name="message" rows="3" maxlength="10000" autocomplete="off" data-i18n-placeholder="placeholder.hazard" placeholder="Describe the hazard (e.g. overflowing bin, broken glass)…"></textarea>
     </label>
+
+    <label class="field">
+      <span><span data-i18n="hazard.reporterName">Your name</span> <small data-i18n="field.optional">(optional)</small></span>
+      <input id="hazard-name-input" name="reporterName" type="text" maxlength="200" autocomplete="name" />
+    </label>
+
+    <label class="field">
+      <span><span data-i18n="hazard.incidentTime">Incident time</span> <small data-i18n="field.optional">(optional)</small></span>
+      <input id="hazard-time-input" name="incidentTime" type="datetime-local" />
+    </label>
+
+    <div class="field">
+      <span><span data-i18n="hazard.photo">Photo</span> <small data-i18n="field.optional">(optional)</small></span>
+      <input id="hazard-image-input" name="image" type="file" accept="image/jpeg,image/png,image/webp" />
+      <div id="hazard-image-preview" class="image-preview hidden">
+        <img id="hazard-image-thumb" alt="" />
+        <button id="btn-remove-photo" class="btn btn-secondary" type="button" data-i18n="btn.removePhoto">Remove</button>
+      </div>
+    </div>
 
     <div class="field location-picker">
       <span><span data-i18n="field.location">Location</span> <em>*</em></span>

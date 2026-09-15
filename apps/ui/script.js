@@ -42,11 +42,17 @@ const TRANSLATIONS = {
     "fab.reportHazard": "Report Hazard",
     "fab.reportHazardTitle": "Report a hazard",
     "hazard.title": "Report a hazard",
-    "hazard.description": "Description",
+    "hazard.message": "Message",
+    "hazard.reporterName": "Your name",
+    "hazard.incidentTime": "Incident time",
+    "hazard.photo": "Photo",
     "placeholder.hazard": "Describe the hazard (e.g. overflowing bin, broken glass)…",
     "btn.useMyLocation": "Use my location",
     "btn.submitReport": "Submit report",
-    "hazard.enterDescription": "Please describe the hazard.",
+    "btn.removePhoto": "Remove",
+    "hazard.noFile": "No photo selected",
+    "hazard.imageTooLarge": "Image must be 5 MB or smaller.",
+    "hazard.imageType": "Please choose a JPEG, PNG, or WebP image.",
     "hazard.pickLocation": "Please set the hazard location.",
     "hazard.locating": "Getting your location…",
     "hazard.noLocation": "Location unavailable. Pick it on the map.",
@@ -131,11 +137,17 @@ const TRANSLATIONS = {
     "fab.reportHazard": "דווח על מפגע",
     "fab.reportHazardTitle": "דיווח על מפגע",
     "hazard.title": "דיווח על מפגע",
-    "hazard.description": "תיאור",
+    "hazard.message": "הודעה",
+    "hazard.reporterName": "השם שלך",
+    "hazard.incidentTime": "מועד האירוע",
+    "hazard.photo": "תמונה",
     "placeholder.hazard": "תארו את המפגע (לדוגמה: פח עולה על גדותיו, זכוכית שבורה)…",
     "btn.useMyLocation": "השתמש במיקומי",
     "btn.submitReport": "שלח דיווח",
-    "hazard.enterDescription": "נא לתאר את המפגע.",
+    "btn.removePhoto": "הסר",
+    "hazard.noFile": "לא נבחרה תמונה",
+    "hazard.imageTooLarge": "התמונה חייבת להיות בגודל 5MB או פחות.",
+    "hazard.imageType": "נא לבחור תמונת JPEG,‏ PNG או WebP.",
     "hazard.pickLocation": "נא לקבוע את מיקום המפגע.",
     "hazard.locating": "מאתר את מיקומך…",
     "hazard.noLocation": "המיקום אינו זמין. בחרו אותו במפה.",
@@ -324,7 +336,13 @@ const elements = {
   reportHazardButton: document.getElementById("btn-report-hazard"),
   hazardDialog: document.getElementById("hazard-dialog"),
   hazardForm: document.getElementById("hazard-form"),
-  hazardDescriptionInput: document.getElementById("hazard-description-input"),
+  hazardDescriptionInput: document.getElementById("hazard-message-input"),
+  hazardNameInput: document.getElementById("hazard-name-input"),
+  hazardTimeInput: document.getElementById("hazard-time-input"),
+  hazardImageInput: document.getElementById("hazard-image-input"),
+  hazardImagePreview: document.getElementById("hazard-image-preview"),
+  hazardImageThumb: document.getElementById("hazard-image-thumb"),
+  removePhotoButton: document.getElementById("btn-remove-photo"),
   hazardLocationText: document.getElementById("hazard-location-text"),
   pickHazardLocationButton: document.getElementById("btn-pick-hazard-location"),
   useMyLocationButton: document.getElementById("btn-use-my-location"),
@@ -384,6 +402,8 @@ let addBinPreviewMarker = null;
 let hazardPickMode = false;
 let hazardCoords = null;
 let hazardPreviewMarker = null;
+let hazardImageFile = null;
+let hazardImagePreviewUrl = null;
 let toastTimer = null;
 
 function setCardState(state) {
@@ -1120,6 +1140,8 @@ async function submitNewBin(event) {
 }
 
 const REPORTS_PATH = "/api/reports";
+const HAZARD_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const HAZARD_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 function showToast(message) {
   elements.toast.textContent = message;
@@ -1132,6 +1154,59 @@ function showToast(message) {
     elements.toast.classList.remove("is-visible");
     setTimeout(() => elements.toast.classList.add("hidden"), 250);
   }, 3200);
+}
+
+function clearHazardImage() {
+  hazardImageFile = null;
+  if (hazardImagePreviewUrl) {
+    URL.revokeObjectURL(hazardImagePreviewUrl);
+    hazardImagePreviewUrl = null;
+  }
+  elements.hazardImageInput.value = "";
+  elements.hazardImageThumb.removeAttribute("src");
+  elements.hazardImagePreview.classList.add("hidden");
+}
+
+function handleHazardImageChange() {
+  const file = elements.hazardImageInput.files && elements.hazardImageInput.files[0];
+  if (!file) {
+    clearHazardImage();
+    return;
+  }
+  if (!HAZARD_IMAGE_TYPES.includes(file.type)) {
+    clearHazardImage();
+    showHazardError(t("hazard.imageType"));
+    return;
+  }
+  if (file.size > HAZARD_IMAGE_MAX_BYTES) {
+    clearHazardImage();
+    showHazardError(t("hazard.imageTooLarge"));
+    return;
+  }
+  clearHazardError();
+  hazardImageFile = file;
+  if (hazardImagePreviewUrl) {
+    URL.revokeObjectURL(hazardImagePreviewUrl);
+  }
+  hazardImagePreviewUrl = URL.createObjectURL(file);
+  elements.hazardImageThumb.setAttribute("src", hazardImagePreviewUrl);
+  elements.hazardImagePreview.classList.remove("hidden");
+}
+
+function toRfc3339WithOffset(localValue) {
+  const date = new Date(localValue);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  const pad = (n) => String(n).padStart(2, "0");
+  const tzMinutes = -date.getTimezoneOffset();
+  const sign = tzMinutes >= 0 ? "+" : "-";
+  const absMinutes = Math.abs(tzMinutes);
+  const offset = `${sign}${pad(Math.floor(absMinutes / 60))}:${pad(absMinutes % 60)}`;
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}${offset}`
+  );
 }
 
 function setHazardPickMode(enabled) {
@@ -1188,6 +1263,7 @@ function resetHazardForm() {
   elements.hazardForm.reset();
   hazardCoords = null;
   clearHazardPreview();
+  clearHazardImage();
   updateHazardLocationLabel();
   clearHazardError();
 }
@@ -1245,15 +1321,10 @@ function useMyLocationForHazard() {
   );
 }
 
-function reportHazard(payload) {
+function reportHazard(formData) {
   fetch(buildApiUrl(REPORTS_PATH), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json"
-    },
-    body: JSON.stringify(payload),
-    keepalive: true
+    body: formData
   }).catch(() => {
     // fire-and-forget: network errors are intentionally ignored
   });
@@ -1263,22 +1334,34 @@ function submitHazard(event) {
   event.preventDefault();
   clearHazardError();
 
-  const description = elements.hazardDescriptionInput.value.trim();
-  if (!description) {
-    showHazardError(t("hazard.enterDescription"));
-    elements.hazardDescriptionInput.focus();
-    return;
-  }
   if (!hazardCoords) {
     showHazardError(t("hazard.pickLocation"));
     return;
   }
 
-  reportHazard({
-    description,
-    latitude: hazardCoords[0],
-    longitude: hazardCoords[1]
-  });
+  const formData = new FormData();
+  formData.append("latitude", String(hazardCoords[0]));
+  formData.append("longitude", String(hazardCoords[1]));
+
+  const message = elements.hazardDescriptionInput.value.trim();
+  if (message) {
+    formData.append("message", message);
+  }
+  const reporterName = elements.hazardNameInput.value.trim();
+  if (reporterName) {
+    formData.append("reporterName", reporterName);
+  }
+  if (elements.hazardTimeInput.value) {
+    const incidentTime = toRfc3339WithOffset(elements.hazardTimeInput.value);
+    if (incidentTime) {
+      formData.append("incidentTime", incidentTime);
+    }
+  }
+  if (hazardImageFile) {
+    formData.append("image", hazardImageFile, hazardImageFile.name);
+  }
+
+  reportHazard(formData);
 
   closeHazardDialog();
   clearHazardPreview();
@@ -1395,6 +1478,8 @@ function setupShell() {
   });
   elements.pickHazardLocationButton.addEventListener("click", beginHazardLocationPick);
   elements.useMyLocationButton.addEventListener("click", useMyLocationForHazard);
+  elements.hazardImageInput.addEventListener("change", handleHazardImageChange);
+  elements.removePhotoButton.addEventListener("click", clearHazardImage);
   elements.closeHazardButton.addEventListener("click", closeHazardDialog);
   elements.cancelHazardButton.addEventListener("click", () => {
     closeHazardDialog();
